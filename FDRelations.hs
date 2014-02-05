@@ -1,5 +1,12 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
+{-
+   For practicing failure detector relations
+      (reductions and equivalences)
+
+   run by: runhaskell FDRelations.hs
+-}
+
 module FDRelations (main) where
 
 import Data.List
