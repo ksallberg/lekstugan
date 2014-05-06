@@ -1,2 +1,4 @@
 *.beam
 *.DS_Store
+*.o
+*.swp

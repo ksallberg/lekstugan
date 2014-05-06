@@ -30,12 +30,46 @@ class SquarePacking : public Space {
       // coordinates for each square to be packed.
       IntVarArray x;
       IntVarArray y;
-
+      
    public:
       SquarePacking(void) {
 
          x = IntVarArray(*this,n,0,n);
          y = IntVarArray(*this,n,0,n);
+         
+         // express with reification that no two squares overlap. Two squares s1
+         // and s2 do not overlap iff
+
+         // s1 is left of s2 OR
+         // s2 is left of s1 OR
+         // s1 is above s2   OR
+         // s2 is above s1
+         for(int i = 0; i < n; i ++) {
+
+            for(int j = 0; j < n; j ++) {
+               
+               IntVar a(*this,0,2*n);
+               IntVar b(*this,0,2*n);
+               IntVar c(*this,0,2*n);
+               IntVar d(*this,0,2*n);
+               
+               BoolVarArray boo(*this,4,0,1);
+
+               rel(*this, a == x[i]+size(i));
+               rel(*this, a, IRT_LQ, x[j], boo[0]);
+
+               rel(*this, b == x[j]+size(j));
+               rel(*this, b, IRT_LQ, x[i], boo[1]);
+
+               rel(*this, c == y[i]+size(i));
+               rel(*this, c, IRT_LQ, y[j], boo[2]);
+
+               rel(*this, d == y[j]+size(j));
+               rel(*this, d, IRT_LQ, y[i], boo[3]);
+               
+               linear(*this, boo, IRT_GQ, 1);
+            }
+         }
 
          branch(*this, y, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
          branch(*this, x, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
@@ -56,11 +90,11 @@ class SquarePacking : public Space {
       
       // return the size of the square with number i
       // i should take the value of 0 -> n
-      int size(int i) {
+      static int size( int i) {
          
-         return n - i;
+         return n-i;
       }
-
+      
       // print the sudoku solution
       void print(void) const {
          
