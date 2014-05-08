@@ -2,6 +2,8 @@
 #include <gecode/gist.hh>
 #include <gecode/minimodel.hh>
 #include <stdio.h>
+#include <limits>
+#include <math.h>
 
 /* 
  * 
@@ -33,10 +35,23 @@ class SquarePacking : public Space {
       
    public:
       SquarePacking(void) {
+        
+         // first we calculate the maximum possible outer size
+         // by placing all squares next to each other
+         int maxS = 0;
+         int minSpaceSize = 0;
+         for(int i = 0; i < n; i ++) {
+            maxS += size(i);
+            minSpaceSize += size(i)*size(i);
+         }
 
+         // assign s to be between 0 and s.max()
+         s = IntVar     (*this,(sqrt(minSpaceSize)),minSpaceSize);
          x = IntVarArray(*this,n,0,n);
          y = IntVarArray(*this,n,0,n);
          
+      // ___________________________________ part 2:
+
          // express with reification that no two squares overlap. Two squares s1
          // and s2 do not overlap iff
 
@@ -71,16 +86,21 @@ class SquarePacking : public Space {
             }
          }
 
+      // ________________________________________ part 3:
+
+
          branch(*this, y, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
          branch(*this, x, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
+         branch(*this, s, INT_VAL_MIN());
       }
-         
+      
       // update all different constructs
-      SquarePacking(bool share, SquarePacking& s) : Space(share, s) {
+      SquarePacking(bool share, SquarePacking& sp) : Space(share, sp) {
          
          // update the IntVarArray
-         x.update(*this, share, s.x);
-         y.update(*this, share, s.y);
+         x.update(*this, share, sp.x);
+         y.update(*this, share, sp.y);
+
       }
       
       virtual Space* copy(bool share) {
@@ -101,7 +121,7 @@ class SquarePacking : public Space {
          std::cout << "Square packing!" << std::endl;
 
          for(int i = 0; i < n; i++) {
-            std::cout << "HEJ" << std::endl;
+            std::cout << "----HEJ----" << std::endl;
             std::cout << x[i]  << std::endl;
             std::cout << y[i]  << std::endl;
          }
