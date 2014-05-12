@@ -38,10 +38,10 @@ class SquarePacking : public Space {
          // first we calculate the maximum possible outer size
          // by placing all squares next to each other
          int maxS = 0;
-         int minSpaceSize = 0;
+         int minSpaceSize = (n*(n+1)*(2*n+1))/6;
          for(int i = 0; i < n; i ++) {
             maxS += size(i);
-            minSpaceSize += size(i)*size(i);
+            //minSpaceSize += size(i)*size(i);
          }
 	
          // assign s to be between 0 and s.max()
