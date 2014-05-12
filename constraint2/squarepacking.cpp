@@ -25,7 +25,7 @@ class SquarePacking : public Space {
       // s = w = h
       IntVar s; // gives the size s of the surrounding square
 
-      const static int n = 13;
+      const static int n = 10;
 
       // Two intvarArrays which give the respective x and y
       // coordinates for each square to be packed.
