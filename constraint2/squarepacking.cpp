@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
       delete s;
    //}
 
-   //Gist::dfs(squarePacking);
+   Gist::dfs(squarePacking);
    delete squarePacking;
    return 0;
 }
