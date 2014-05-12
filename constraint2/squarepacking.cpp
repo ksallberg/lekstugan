@@ -117,7 +117,7 @@ class SquarePacking : public Space {
       	// we guarrantee that the outer square formed by the lowest bound min(s) has enough space for 
       	// fitting the total sum of space size of all inner squares.
 
-        //We tried to remove symmetries by applying the following constraint presented in the paper on Section 2.2
+        // (b) We tried to remove symmetries by applying the following constraint presented in the paper on Section 2.2
 	// rel(*this,x[0]== 1 + (s-n)/2);
 	// However, the above formula did not make sense and did not yield to an optimal solution.
 	// Hence we just assign the largest square to a corner.
@@ -125,6 +125,9 @@ class SquarePacking : public Space {
 	rel(*this,y[0]<= x[0]);
 
 	//The above 2 rel constraints put the largest square to the upper left corner [0,0]
+
+   // (d) We removed the smallest square from the model by introducing -1 in the 
+   //     loops that post all constraints.
 
  
 	//PART 5
