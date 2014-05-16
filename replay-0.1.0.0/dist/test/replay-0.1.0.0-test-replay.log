@@ -1,4 +1,0 @@
-Test suite test-replay: RUNNING...
-test1: test-replay: Prelude.read: no parse
-Test suite test-replay: FAIL
-Test suite logged to: dist/test/replay-0.1.0.0-test-replay.log
