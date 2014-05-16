@@ -1,4 +1,5 @@
 import Control.Monad      (forM_)
+import System.Directory   (getDirectoryContents)
 import System.Environment (getArgs)
 import System.IO
 
@@ -17,6 +18,7 @@ instance Show Setting where
                   "NUMBER_OF_PROBES:" ++ (show (probes setting)) ++"\n"    ++
                   "NUMBER_OF_NODES:"  ++ (show (nodes setting))  ++"\n"    ++
                   "NUMBER_OF_JOBS:"   ++ (show (jobs setting))
+
 {-
    If no arguments are given, Print all combinations 
    for the setting variables probes, nodes, jobs and their ID.
@@ -26,8 +28,12 @@ main = do
    args <- getArgs
    case args of
       [] -> createSettingFiles
-      _  -> performOutputParsing $ head args
-
+      -- for all files in a given directory, do performOutputParsing and
+      -- save the result to appendfile.txt
+      _  -> do outputFiles <- getDirectoryContents (head args)
+               forM_ [(head args)++o|o<-outputFiles,o/="."&&o/=".."]
+                     ((flip performOutputParsing) "appendfile.txt")
+               
 {- Generate combinations needed to test and write all files to disk -}
 createSettingFiles :: IO ()
 createSettingFiles = do
@@ -40,20 +46,21 @@ createSettingFiles = do
        idcomb         = [Setting theId probe node job
                         | (theId,(probe,node,job)) <- zip [1..] combinations]
        fileName       = "resourcemanager/settingfiles/input"
-   forM_ idcomb (\x-> writeSettingFile (fileName++(show . theId) x++".conf")
-                                       (show x))
+   forM_ idcomb $ \x-> writeFileLine (fileName++(show . theId) x++".conf")
+                                     (show x)
+                                     WriteMode
 
 {- Create a file, write the str given and close the file -}
-writeSettingFile :: FilePath -> String -> IO ()
-writeSettingFile fp content = do
-   handle <- openFile fp WriteMode
+writeFileLine :: FilePath -> String -> IOMode ->IO ()
+writeFileLine fp content mode = do
+   handle <- openFile fp mode
    hPutStrLn handle content
    hClose handle
 
 {- Read an output file, parse it, 
    perform calculations and generate new output files
 -}
-performOutputParsing :: FilePath -> IO ()
-performOutputParsing fp = do 
-   file <- readFile fp
-   putStrLn $ "File read:\n" ++ file
+performOutputParsing :: FilePath -> FilePath -> IO ()
+performOutputParsing readFrom writeTo = do
+   file <- readFile readFrom
+   writeFileLine writeTo "test todo fill in read content" AppendMode
