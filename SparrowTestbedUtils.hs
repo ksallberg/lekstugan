@@ -1,4 +1,7 @@
+-- runhaskell SparrowTestbedUtils.hs resourcemanager/output/
+
 import Control.Monad      (forM_)
+import qualified Data.Map as M
 import System.Directory   (getDirectoryContents)
 import System.Environment (getArgs)
 import System.IO
@@ -6,10 +9,10 @@ import System.IO
 {-- Used for storing information for the input.conf files --}
 data Setting = Setting
   {
-    theId ::Integer
-  , probes::Integer
-  , nodes ::Integer
-  , jobs  ::Integer
+    theId     :: Integer
+  , probes    :: Integer
+  , nodes     :: Integer
+  , jobs      :: Integer
   }
 
 {- toString definition for Setting -}
@@ -18,6 +21,10 @@ instance Show Setting where
                   "NUMBER_OF_PROBES:" ++ (show (probes setting)) ++"\n"    ++
                   "NUMBER_OF_NODES:"  ++ (show (nodes setting))  ++"\n"    ++
                   "NUMBER_OF_JOBS:"   ++ (show (jobs setting))
+
+-- used for saving id [(cmd,time)]
+type Output     = M.Map Integer [(String,String)]
+type OutputLine = (Integer,String,String)
 
 {-
    If no arguments are given, Print all combinations 
@@ -31,7 +38,8 @@ main = do
       -- for all files in a given directory, do performOutputParsing and
       -- save the result to appendfile.txt
       _  -> do outputFiles <- getDirectoryContents (head args)
-               forM_ [(head args)++o|o<-outputFiles,o/="."&&o/=".."]
+               let skipFiles = [".","..",".DS_Store"]
+               forM_ [(head args)++o|o<-outputFiles,not $ elem o skipFiles]
                      ((flip performOutputParsing) "appendfile.txt")
                
 {- Generate combinations needed to test and write all files to disk -}
@@ -63,4 +71,20 @@ writeFileLine fp content mode = do
 performOutputParsing :: FilePath -> FilePath -> IO ()
 performOutputParsing readFrom writeTo = do
    file <- readFile readFrom
+   let allLines = map parseLine (lines file)
+       theMap   = foldl (+->) M.empty allLines
+   -- TODO: Here we can make various calculations from the hash map
+   putStrLn $ show theMap
    writeFileLine writeTo "test todo fill in read content" AppendMode
+
+{- for a line from any output file (from kompics) take the 
+   info we need and put it in an OutputLine tuple
+-}
+parseLine :: String -> OutputLine
+parseLine inp = (read jobId::Integer,command,timest)
+   where (command,rest) = (takeWhile (/=' ') inp, tail $ dropWhile (/=' ') inp)
+         (jobId,timest) = (takeWhile (/=' ') rest,tail $ dropWhile (/=' ') rest)
+         
+{- add one item to the output hashmap -}
+(+->) :: Output -> OutputLine -> Output
+out +-> (jobid,cmd,time) = M.insertWith (++) jobid [(cmd,time)] out
