@@ -1,13 +1,14 @@
--- runhaskell SparrowTestbedUtils.hs resourcemanager/output/
+-- runhaskell TestUtils.hs resourcemanager/output/
 
-import Control.Monad      (forM_)
+import Control.Monad                (forM_)
 import Data.List
 import Data.Maybe
-import qualified Data.Map as M
-import System.Directory   (getDirectoryContents)
-import System.Environment (getArgs)
+import Data.Tuple
+import qualified Data.Map           as M
+import System.Directory             (getDirectoryContents)
+import System.Environment           (getArgs)
 import System.IO
-import System.FilePath.Posix    (takeFileName)
+import System.FilePath.Posix        (takeFileName)
 
 {-- Used for storing information for the input.conf files --}
 data Setting = Setting
@@ -21,6 +22,9 @@ data Setting = Setting
 -- list the commands
 data Command = PRB | INI | TER | SCH
    deriving (Show,Read,Ord,Eq)
+
+data End = High | Low
+   deriving (Show,Read)
 
 {- toString definition for Setting -}
 instance Show Setting where
@@ -86,7 +90,7 @@ performOutputParsing readFrom writeTo = do
        ls       = sort $ M.toList theMap
    -- perform calculations, get a big string back and write this
    -- string to the given statistics file
-   forM_ [(calculations ls,writeTo++(takeFileName readFrom)),
+   forM_ [(foldl calculations "" ls,writeTo++(takeFileName readFrom)),
           (averages ls, writeTo++"__averages__"++(takeFileName readFrom))]
          (\(theList,theMsg) -> writeFileLine theMsg theList WriteMode)
 
@@ -97,62 +101,76 @@ getTs (cmd,timestamp) = timestamp
 {- Get averages and 99th percentile as a String -}
 averages :: [(JobId,[Measure])] -> String
 averages ls =
-   concat [label++" averages time " ++ (show $ getAvg times) ++ "\n" ++
-           label++" 99th p   time " ++ (show $ get99P times) ++ "\n"
-          | (label,times) <- combs]
-   where combs = [("Probing",getTimesFor PRB INI ls),
-                  ("Waiting",getTimesFor SCH PRB ls),
-                  ("Running",getTimesFor TER SCH ls),
-                  ("Total"  ,getTimesFor TER INI ls)]
+   concat [label++" averages time "     ++(show $ getAvg $ getTimesFor f t ls)++
+           "\n" ++label++" 99th p time "++(show $ get99P $ getTimesFor f t ls)++"\n"
+          | (label,(f,t)) <- combs]
+   where combs = [("Probing",((PRB,High),(INI,High))),
+                  ("Waiting",((SCH,High),(PRB,High))),
+                  ("Running",((TER,High),(SCH,High))),
+                  ("Total"  ,((TER,High),(INI,High)))]
 
 {- For a list of times, calculate average -}
 getAvg :: [TimeStamp] -> TimeStamp
-getAvg ls = div (sum ls) (toInteger $ length ls)
+getAvg ls = div (sum ls) (toInteger $ length ls)
 
-{- For a list of times, calculate 99th percentile -}
+{- For a list of times, calculate 99th percentile 
+   @see https://answers.yahoo.com/question/index?qid=1005122102489
+-}
 get99P :: [TimeStamp] -> TimeStamp
-get99P ls = div (sum percent99) (toInteger $ length percent99)
-   where percent99 = take (round (len*0.99)) ls
-         len       = fromIntegral $ length (sort ls)
+get99P ls = last percent99
+   where percent99 = take (ceiling $ len*0.99) (sort ls)
+         len       = fromIntegral  $ length    (sort ls)
 
 {- Get all results for Command1 - Command2
    
    THIS FUNCTION IS UNSAFE because it assumes all Maybes are Just
 -}
-getTimesFor :: Command -> Command -> [(JobId,[Measure])] -> [TimeStamp]
-getTimesFor c1 c2 ls = [getTs measure1-getTs measure2|(measure1,measure2)<-a]
-   where a = [(fromJust $ getMeasure c1 meas, fromJust $ getMeasure c2 meas)
-             |(_,meas)<-ls]
+getTimesFor :: (Command,End) -> (Command,End) -> [(JobId,[Measure])] -> [TimeStamp]
+getTimesFor (c1,e1) (c2,e2) ls =
+   [getTs measure1 - getTs measure2 | (measure1,measure2) <- a]
+      where a = [(fromJust $ getMeasure c1 e1 meas, fromJust $ getMeasure c2 e2 meas)
+                |(_,meas)<-ls]
 
 {- Here we can perform the calculations needed, and then format it all as
    a string
 
    Measure = (Command, TimeStamp)
+
+   between (A,B):
+   (PRB,INI) = probing
+   (SCH,PRB) = waiting
+   (TER,SCH) = running
+   (TER,INI) = total
 -}
-calculations :: [(JobId,[Measure])] -> String
-calculations [] = ""
-calculations ((jobId,commandLs):xs) =
-   (show jobId)++","++
-   (safeCalcMeasure PRB INI commandLs)++"," ++  -- probing
-   (safeCalcMeasure SCH PRB commandLs)++"," ++  -- waiting
-   (safeCalcMeasure TER SCH commandLs)++"," ++  -- running
-   (safeCalcMeasure TER INI commandLs)++"\n"++  -- total
-   calculations xs
+calculations :: String -> (JobId,[Measure]) -> String
+calculations old (jobId,commLs) = old ++ show jobId ++ "," ++ combs ++ "\n"
+   where combs = concat [(safeCalcMeasure x y commLs) ++ "," | (x,y)<-cs]
+         cs = [((PRB,High),(INI,High)),
+               ((SCH,High),(PRB,High)),
+               ((TER,High),(SCH,High)),
+               ((TER,High),(INI,High))]
 
 {- take 2 commands and return command1 minus command2 as String -}
-safeCalcMeasure :: Command -> Command -> [Measure] -> String
-safeCalcMeasure cmd1 cmd2 commandLs =
+safeCalcMeasure :: (Command,End) -> (Command,End) -> [Measure] -> String
+safeCalcMeasure (cmd1,e1) (cmd2,e2) commandLs =
    case (isJust m1 && isJust m2) of
       True  -> show $ (getTs (fromJust m1)) - (getTs (fromJust m2))
       False -> "error_command_not_found"
-   where m1 = getMeasure cmd1 commandLs
-         m2 = getMeasure cmd2 commandLs
+   where m1 = getMeasure cmd1 e1 commandLs
+         m2 = getMeasure cmd2 e2 commandLs
 
-{- try to pick from Just, in a safe manner... If not found return nothing -}
-getMeasure :: Command -> [Measure] -> Maybe Measure
-getMeasure _ []                                      = Nothing
-getMeasure cmd (measure@(inCmd,_):xs) | cmd == inCmd = Just measure
-                                      | otherwise    = getMeasure cmd xs
+{- try to pick from Just, in a safe manner... If not found return nothing
+   (Command, TimeStamp)
+-}
+getMeasure :: Command -> End -> [Measure] -> Maybe Measure
+getMeasure cmd e ls =
+   case (isJust $ lookup cmd $ searchList e ls) of
+      True  -> Just (head $ searchList e ls)
+      False -> Nothing
+   where searchList :: End -> [Measure] -> [Measure]
+         searchList High inp = reverse $ sortedList inp
+         searchList Low  inp = sortedList inp
+         sortedList inp      = map swap $ sort [(tS,iD)|(iD,tS)<-inp,iD==cmd]
 
 {- for a line from any output file (from kompics) take the 
    info we need and put it in an OutputLine tuple.
