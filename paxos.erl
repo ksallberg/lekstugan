@@ -1,3 +1,4 @@
+
 -module(paxos).
 -export([start/0,pre_loop/0,loop/9,command_line/0]).
 
