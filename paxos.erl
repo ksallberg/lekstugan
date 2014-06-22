@@ -31,7 +31,9 @@ start() ->
    % tell another to propose 200
    lists:nth(8, Procs) ! {propose,200},
    % and someone to propose 300
-   lists:nth(12,Procs) ! {propose,300}.
+   lists:nth(12,Procs) ! {propose,300},
+   % rank.. 1
+   lists:nth(1,Procs)  ! {propose,400}.
 
 command_line(N) ->
    receive
