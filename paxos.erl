@@ -6,51 +6,51 @@
 %%% 
 
 -module(paxos).
--export([start/0,loop/9,command_line/0]).
--record(readls_mem,{pid,ts,v}).
+-export([start/0,loop/9,command_line/1]).
 
 start() ->
-   io:fwrite("let's start, command line process is cmd"),
+   io:fwrite("let's start, command line process is cmd~n"),
    Cmd_name = cmd,
-   register(Cmd_name,spawn(paxos,command_line,[])),
+   register(Cmd_name,spawn(paxos,command_line,[[]])),
    % upon event init
    Procs = [spawn(paxos,loop,[Cmd_name, % AC
                               [],       % N
                               X,        % Rank... id number
                               0,        % Time
                               0,        % Prepts
-                              {0,nil},  % A
-                              {0,nil},  % P
+                              {0,nil},    % A, {0,nil}
+                              {0,nil},    % P, {0,nil}
                               [],       % ReadLs
                               0         % Acks
-                             ]) || X<-lists:seq(0,6)],
+                             ]) || X <- lists:seq(0,25)],
    % send the Procs
-   lists:foreach(fun(N) -> N ! {other_procs,Procs} end,Procs).
+   lists:foreach(fun(N) -> N ! {other_procs,Procs} end,Procs),
+   Cmd_name ! {other_procs,Procs},
+   % tell one process to propose 100
+   lists:nth(4, Procs) ! {propose,100},
+   % tell another to propose 200
+   lists:nth(8, Procs) ! {propose,200},
+   % and someone to propose 300
+   lists:nth(12,Procs) ! {propose,300}.
 
-command_line() ->
+command_line(N) ->
    receive
-      {setN,Val}  -> io:fwrite("Value proposed:\n"),
-                     io:format("%s\n",Val);
-      {return,Pv} -> _ = Pv,
-                     io:fwrite("Return received.\n");
-      abort       -> io:fwrite("Aborted!\n");
-      _           -> io:fwrite("Not recognized command.\n")
+      {other_procs,Procs} -> io:fwrite("Cmd received other_procs\n"),
+                             command_line(Procs);
+      {propose,Val}       -> io:fwrite("Val proposed: ~p~n",[Val]),
+                             lists:nth(1,N) ! {propose,Val}; % send to paxos
+      {return,Pv}         -> io:fwrite("Consensus achieved: ~p~n",[Pv]);
+      abort               -> io:fwrite("Aborted!\n");
+      _                   -> io:fwrite("Not recognized command.\n")
    end,
-   command_line().
+   command_line(N).
 
 % make a broadcast
-tell_peers(Procs,msg) -> lists:foreach(fun(N) -> N ! msg end,Procs).
+tell_peers(Msg,Procs) -> lists:foreach(fun(N) -> N ! Msg end,Procs).
 
 % get the highest process
 % @type ReadLs: [{Pid,{Ts,V}}]
-highest(ReadLs) -> lists:foldl(fun(A,B) ->
-                                  case A#readls_mem.ts > B#readls_mem.ts of
-                                     true  -> {A#readls_mem.ts,A#readls_mem.v};
-                                     false -> {B#readls_mem.ts,B#readls_mem.v}
-                                  end
-                               end,
-                               lists:nth(1,ReadLs), % head of ls
-                               ReadLs).
+highest(ReadLs) -> lists:nth(1,lists:keysort(2,ReadLs)).
 
 % actors/states: proposer, acceptor, learner
 % N is all procs
@@ -59,19 +59,19 @@ loop(Ac,N,Rank,T,Prepts,A={Ats,Av},P={Pts,Pv},ReadLs,Acks) ->
    receive
       % set the other processes
       {other_procs,Procs} ->
-         io:fwrite("received other_procs\n"),
+         io:fwrite("received other_procs~n"),
          loop(Ac,Procs,Rank,T,Prepts,A,P,ReadLs,Acks);
    
       % phase 1 propose
       {propose,V} ->
+         io:fwrite("Paxos; received propose~n"),
          NewT      = T+1,
          NewPts    = NewT * length(N) + Rank,
          NewPv     = V,
-         NewReadLs = [],
          NewAcks   = 0,
          % trigger < beb, Broadcast | [Prepare, pts, t] >
          tell_peers({self(),{prepare,NewPts,NewT}},N),
-         loop(Ac,N,Rank,NewT,Prepts,A,{NewPts,NewPv},NewReadLs,NewAcks);
+         loop(Ac,N,Rank,NewT,Prepts,A,{NewPts,NewPv},[],NewAcks);
       
       % phase 1 deliver prepare
       {Q,{prepare,Ts,T_}} ->
@@ -110,7 +110,7 @@ loop(Ac,N,Rank,T,Prepts,A={Ats,Av},P={Pts,Pv},ReadLs,Acks) ->
                   % replace list of Q
                   case (length(NewReadLs_) > (length(N) / 2)) of
                      true ->
-                        {NewTs,NewV} = highest(NewReadLs_),
+                        {_,NewTs,NewV} = highest(NewReadLs_),
                         NewPv = case NewTs/=0 of
                                    true  -> NewV;
                                    false -> Pv
@@ -148,8 +148,9 @@ loop(Ac,N,Rank,T,Prepts,A={Ats,Av},P={Pts,Pv},ReadLs,Acks) ->
          NewT = max(T,T_)+1,
          {NewP,NA} = case Pts_ == Pts of
             true ->
-               NewAcks = Acks + 1,
-               case (NewAcks > N / 2) of
+               NewAcks = Acks+1,
+               io:fwrite("accept_ack true ~p~n",[NewAcks]),
+               case (NewAcks > length(N) / 2) of
                   true ->
                      NewPts = 0,
                      % trigger ⟨ ac, Return | pv ⟩;
@@ -159,6 +160,7 @@ loop(Ac,N,Rank,T,Prepts,A={Ats,Av},P={Pts,Pv},ReadLs,Acks) ->
                      {P,NewAcks}
                end;
             false ->
+               io:fwrite("accept_ack false ~n"),
                {P,Acks}
          end,
          loop(Ac,N,Rank,NewT,T,A,NewP,ReadLs,NA)
