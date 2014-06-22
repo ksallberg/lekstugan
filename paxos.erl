@@ -18,8 +18,8 @@ start() ->
                               X,        % Rank... id number
                               0,        % Time
                               0,        % Prepts
-                              {0,nil},    % A, {0,nil}
-                              {0,nil},    % P, {0,nil}
+                              {0,nil},  % A
+                              {0,nil},  % P
                               [],       % ReadLs
                               0         % Acks
                              ]) || X <- lists:seq(0,25)],
