@@ -102,29 +102,34 @@ loop(Ac,N,Rank,T,Prepts,A={Ats,Av},P={Pts,Pv},ReadLs,Acks) ->
                         P
                   end,
          loop(Ac,N,Rank,NewT,Prepts,A,NewPts,ReadLs,Acks);
-      
+     
+      % Note NewReadLs is defined differently in all case
+      % branches and is still accessible in the loop function call
       {Q,{prepare_ack,Ts,V,Pts_,T_}} ->
          NewT = max(T,T_)+1,
-         {NewA,NewPv_,NewReadLs} = 
+         {NewA,NewPv_} = 
             case Pts_ == Pts of
                true ->
-                  NewReadLs_ = lists:keystore(Q,1,ReadLs,{Q,Ts,V}),
+                  AddedReadLs = lists:keystore(Q,1,ReadLs,{Q,Ts,V}),
                   % replace list of Q
-                  case (length(NewReadLs_) > (length(N) / 2)) of
+                  case (length(AddedReadLs) > (length(N) / 2)) of
                      true ->
-                        {_,NewTs,NewV} = highest(NewReadLs_),
+                        {_,NewTs,NewV} = highest(AddedReadLs),
                         NewPv = case NewTs/=0 of
                                    true  -> NewV;
                                    false -> Pv
                                 end,
                         % trigger ⟨ Broadcast | [Accept,pts,pv,t] ⟩;
                         tell_peers({self(),{accept,Pts,NewPv,NewT}},N),
-                        {{NewTs,NewV},NewPv,[]}; % NewReadLs empty
+                        NewReadLs = [],
+                        {{NewTs,NewV},NewPv}; % NewReadLs empty
                      false ->
-                        {A,Pv,NewReadLs_}
+                        NewReadLs = AddedReadLs,
+                        {A,Pv}
                   end;
                false ->
-                  {A,Pv,ReadLs}
+                  NewReadLs = ReadLs,
+                  {A,Pv}
             end,
          loop(Ac,N,Rank,NewT,Prepts,NewA,{Pts,NewPv_},NewReadLs,Acks);
        
