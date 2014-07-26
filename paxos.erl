@@ -1,31 +1,32 @@
-%%% 
+%%%
 %%% The paxos algorithm for abortable consensus
-%%% 
+%%%
 %%% Algorithm from the "Advanced Distributed Systems"
 %%% course from KTH...
-%%% 
+%%%
 
 -module(paxos).
 -export([start/0,loop/9,command_line/1]).
 
+-define(CMD_NAME,cmd).
+
 start() ->
    io:fwrite("let's start, command line process is cmd~n"),
-   Cmd_name = cmd,
-   register(Cmd_name,spawn(paxos,command_line,[[]])),
+   register(?CMD_NAME,spawn(paxos,command_line,[[]])),
    % upon event init
-   Procs = [spawn(paxos,loop,[Cmd_name, % AC
-                              [],       % N
-                              X,        % Rank... id number
-                              0,        % Time
-                              0,        % Prepts
-                              {0,nil},  % A
-                              {0,nil},  % P
-                              [],       % ReadLs
-                              0         % Acks
+   Procs = [spawn(paxos,loop,[?CMD_NAME, % AC
+                              [],        % N
+                              X,         % Rank... id number
+                              0,         % Time
+                              0,         % Prepts
+                              {0,nil},   % A
+                              {0,nil},   % P
+                              [],        % ReadLs
+                              0          % Acks
                              ]) || X <- lists:seq(0,25)],
    % send the Procs
    lists:foreach(fun(N) -> N ! {other_procs,Procs} end,Procs),
-   Cmd_name ! {other_procs,Procs},
+   ?CMD_NAME ! {other_procs,Procs},
    % tell one process to propose 100
    lists:nth(4, Procs) ! {propose,100},
    % tell another to propose 200
@@ -41,7 +42,8 @@ command_line(N) ->
                              command_line(Procs);
       {propose,Val}       -> io:fwrite("Val proposed: ~p~n",[Val]),
                              lists:nth(1,N) ! {propose,Val}; % send to paxos
-      {return,Pv}         -> io:fwrite("Consensus achieved: ~p~n",[Pv]);
+      {return,Pv}         -> io:fwrite("Consensus achieved: ~p~n",[Pv]),
+                             unregister(?CMD_NAME);
       abort               -> io:fwrite("Aborted!\n");
       _                   -> io:fwrite("Not recognized command.\n")
    end,
@@ -63,7 +65,7 @@ loop(Ac,N,Rank,T,Prepts,A={Ats,Av},P={Pts,Pv},ReadLs,Acks) ->
       {other_procs,Procs} ->
          io:fwrite("received other_procs~n"),
          loop(Ac,Procs,Rank,T,Prepts,A,P,ReadLs,Acks);
-   
+
       % phase 1 propose
       {propose,V} ->
          io:fwrite("Paxos; received propose~n"),
@@ -74,82 +76,82 @@ loop(Ac,N,Rank,T,Prepts,A={Ats,Av},P={Pts,Pv},ReadLs,Acks) ->
          % trigger < beb, Broadcast | [Prepare, pts, t] >
          tell_peers({self(),{prepare,NewPts,NewT}},N),
          loop(Ac,N,Rank,NewT,Prepts,A,{NewPts,NewPv},[],NewAcks);
-      
+
       % phase 1 deliver prepare
       {Q,{prepare,Ts,T_}} ->
          NewT  = max(T,T_)+1,
-         NewPrepts = case Ts < Prepts of
-                        true  ->
-                           % trigger ⟨ q, [Nack, ts, t] ⟩;
-                           Q ! {self(),{nack,Ts,NewT}},
-                           Prepts;
-                        false ->
-                           % trigger ⟨ q, [PrepareAck, ats, av, ts, t] ⟩;
-                           Q ! {self(),{prepare_ack,Ats,Av,Ts,T}},
-                           Ts
-                     end,
+         case Ts < Prepts of
+            true  ->
+               % trigger ⟨ q, [Nack, ts, t] ⟩;
+               Q ! {self(),{nack,Ts,NewT}},
+               NewPrepts = Prepts;
+            false ->
+               % trigger ⟨ q, [PrepareAck, ats, av, ts, t] ⟩;
+               Q ! {self(),{prepare_ack,Ats,Av,Ts,T}},
+               NewPrepts = Ts
+         end,
          loop(Ac,N,Rank,T,NewPrepts,A,P,ReadLs,Acks);
-      
+
       % phase 2 nack
       {_,{nack,Pts_,T_}} ->
          NewT   = max(T,T_)+1, % increase logical clock
-         NewPts = case Pts_ == Pts of
-                     true ->
-                        % trigger ⟨ ac, Abort ⟩
-                        Ac ! abort,
-                        {0,Pv};
-                     false ->
-                        P
-                  end,
+         case Pts_ == Pts of
+            true ->
+               % trigger ⟨ ac, Abort ⟩
+               Ac ! abort,
+               NewPts = {0,Pv};
+            false ->
+               NewPts = P
+         end,
          loop(Ac,N,Rank,NewT,Prepts,A,NewPts,ReadLs,Acks);
-     
+
       % Note NewReadLs is defined differently in all case
       % branches and is still accessible in the loop function call
       {Q,{prepare_ack,Ts,V,Pts_,T_}} ->
          NewT = max(T,T_)+1,
-         {NewA,NewPv_} = 
-            case Pts_ == Pts of
-               true ->
-                  AddedReadLs = lists:keystore(Q,1,ReadLs,{Q,Ts,V}),
-                  % replace list of Q
-                  case (length(AddedReadLs) > (length(N) / 2)) of
-                     true ->
-                        {_,NewTs,NewV} = highest(AddedReadLs),
-                        NewPv = case NewTs/=0 of
-                                   true  -> NewV;
-                                   false -> Pv
-                                end,
-                        % trigger ⟨ Broadcast | [Accept,pts,pv,t] ⟩;
-                        tell_peers({self(),{accept,Pts,NewPv,NewT}},N),
-                        NewReadLs = [],
-                        {{NewTs,NewV},NewPv}; % NewReadLs empty
-                     false ->
-                        NewReadLs = AddedReadLs,
-                        {A,Pv}
-                  end;
-               false ->
-                  NewReadLs = ReadLs,
-                  {A,Pv}
-            end,
+         case Pts_ == Pts of
+            true ->
+               AddedReadLs = lists:keystore(Q,1,ReadLs,{Q,Ts,V}),
+               % replace list of Q
+               case (length(AddedReadLs) > (length(N) / 2)) of
+                  true ->
+                     {_,NewTs,NewV} = highest(AddedReadLs),
+                     NewPv = case NewTs/=0 of
+                                true  -> NewV;
+                                false -> Pv
+                             end,
+                     % trigger ⟨ Broadcast | [Accept,pts,pv,t] ⟩;
+                     tell_peers({self(),{accept,Pts,NewPv,NewT}},N),
+                     NewReadLs = [],
+                     {NewA,NewPv_} = {{NewTs,NewV},NewPv};
+                  false ->
+                     NewReadLs = AddedReadLs,
+                     {NewA,NewPv_} = {A,Pv}
+               end;
+            false ->
+               NewReadLs = ReadLs,
+               {NewA,NewPv_} = {A,Pv}
+         end,
          loop(Ac,N,Rank,NewT,Prepts,NewA,{Pts,NewPv_},NewReadLs,Acks);
-       
+
       {Q,{accept,Ts,V,T_}} ->
          NewT = max(T,T_)+1,
-         {NewPrepts,NewA} = case Ts < Prepts of
+         case Ts < Prepts of
             true ->
                % trigger ⟨ q, [Nack, ts, t] ⟩;
                Q ! {self(),{nack,Ts,NewT}},
-               {Prepts,A};
+               NewPrepts = Prepts,
+               NewA = A;
             false ->
-               NewPrepts_ = Ts,
-               NewAts     = Ts,
-               NewAv      = V,
+               NewPrepts = Ts,
+               NewAts    = Ts,
+               NewAv     = V,
                % trigger ⟨ q, [AcceptAck, ts, t] ⟩;
                Q ! {self(),{accept_ack,Ts,NewT}},
-               {NewPrepts_,{NewAts,NewAv}}
+               NewA = {NewAts,NewAv}
          end,
          loop(Ac,N,Rank,NewT,NewPrepts,NewA,P,ReadLs,Acks);
-      
+
       % {Q, {accept_ack,Pts',T'}}
       {_,{accept_ack,Pts_,T_}} ->
          NewT = max(T,T_)+1,
