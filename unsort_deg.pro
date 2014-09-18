@@ -15,4 +15,5 @@ degree(Num, [H|T], Prev, Next) :-
     This is Prev + 1,
     degree(Num, T, This, Next).
 degree(Num, [H|T], Prev, Next) :-
+    Num <= H,
     degree(Num, T, Prev, Next).
