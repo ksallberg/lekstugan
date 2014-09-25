@@ -2,16 +2,15 @@
 
 module BattleShip where
 
-import           Control.Concurrent
-import           Control.Monad.Trans.Resource
-import           Control.Monad.IO.Class
-import           Data.Aeson
-import           Data.Maybe
-import           GHC.Generics
-import           Network.HTTP.Conduit
-import           System.Random
-import qualified Data.ByteString.Lazy.Char8 as LBS8
-import qualified Text.JSON                  as J
+import Control.Concurrent
+import Control.Monad.Trans.Resource
+import Control.Monad.IO.Class
+import Data.Aeson
+import Data.Maybe
+import GHC.Generics
+import Network.HTTP.Conduit
+import System.Random
+import Data.ByteString.Lazy.Char8 (ByteString)
 
 data RequestData = RequestData
     { player_name :: String
@@ -48,20 +47,13 @@ instance Show Radar where
                              "Won? " ++ (show won) ++ "\n" ++
                              (concat [line ++ "\n" | line <- board])
 
--- Because Aeson uses a hashmap its not possible to serialize Data Types
--- with the specified order of their members, such as 1) player, 2) shoot
--- Instead we can use the Text.JSON package to serialize this specific case...
-instance J.JSON RequestData where
-    showJSON (RequestData name Nothing) =
-        J.makeObj [("player_name", J.JSString $ J.toJSString name)]
-    showJSON (RequestData name (Just shot)) =
-        let arr = [J.JSRational True (toRational s) | s <- shot] in
-        J.makeObj [("player_name", J.JSString $ J.toJSString name),
-                   ("shoot_at",    J.JSArray arr)]
-    readJSON _ = undefined
+instance ToJSON RequestData where
+    toJSON (RequestData name Nothing)     = object ["player_name" .= name]
+    toJSON (RequestData name (Just shot)) = object ["player_name" .= name,
+                                                    "shoot_at"    .= shot]
 
 hostName :: String
-hostName = "http://192.168.1.89:2222"
+hostName = "http://localhost:2222"
 
 main :: IO ()
 main = do
@@ -107,15 +99,13 @@ reset = makeRequest (hostName++"/battleship/reset/")
                     (encode Reset{password = "pretty please"})
           >>= \_ -> return ()
 
-sendAndReadResponse :: RequestData -> Route -> IO LBS8.ByteString
+sendAndReadResponse :: RequestData -> Route -> IO ByteString
 sendAndReadResponse req route =
-    do let usr = J.encode req
-       putStrLn (usr)
-       response <- makeRequest (hostName++route) (LBS8.pack usr)
+    do response <- makeRequest (hostName++route) (encode req)
        return $ responseBody response
 
 makeRequest :: (MonadThrow m, MonadIO m, MonadBaseControl IO m) =>
-               String -> LBS8.ByteString -> m (Response LBS8.ByteString)
+               String -> ByteString -> m (Response ByteString)
 makeRequest url reqBody =
     do req <- parseUrl url
        withManager $ httpLbs req
