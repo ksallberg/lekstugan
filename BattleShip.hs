@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric, FlexibleContexts #-}
 
-{- Board exhausted example:
+{-
+Board exhausted example:
 mmmmmmmmsm
 msmsmmmmmm
 msmmmmssmm
@@ -11,6 +12,18 @@ mmsmmmmmmm
 mmsmmmsssm
 mmsmmmmmmm
 mmmsssmmmm
+
+Perfect hits example:
+~~~~~~~~s~
+~s~s~~~~~~
+~s~~~~ss~~
+~s~~s~~~~~
+~s~~s~s~~~
+~~~~~~~~~~
+~~s~~~~~~~
+~~s~~~sss~
+~~s~~~~~~~
+~~~sss~~~~
 -}
 
 module BattleShip where
