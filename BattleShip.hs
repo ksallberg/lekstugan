@@ -97,22 +97,17 @@ getInt = do
 
 gameLoop :: State -> IO ()
 gameLoop state@(State shots player) = do
-    --randX <- getStdRandom (randomR (0,9))
-    --randY <- getStdRandom (randomR (0,9))
-    radar2 <- radar player
-    putStrLn $ show radar2
     putStrLn "Enter X"
-    randX <- getInt
+    xPos <- getInt
     putStrLn "Enter Y"
-    randY <- getInt
+    yPos <- getInt
     let shot  = RequestData{player_name = player_name player,
-                            shoot_at = Just [randX, randY]}
+                            shoot_at = Just [xPos, yPos]}
     sht <- shoot shot
     putStrLn $ show sht
-    gameLoop (state{shots = shots ++ [[randX, randY]]})
---    case line of
---        "n" -> return ()
- --       "y" -> gameLoop (state{shots = shots ++ [[randX, randY]]})
+    radar <- radar player
+    putStrLn $ show radar
+    gameLoop (state{shots = shots ++ [[xPos, yPos]]})
 
 signup :: RequestData -> IO ResponseData
 signup user = do body <- sendAndReadResponse user "/battleship/register/"
