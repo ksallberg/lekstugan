@@ -1,5 +1,18 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric, FlexibleContexts #-}
 
+{- Board exhausted example:
+mmmmmmmmsm
+msmsmmmmmm
+msmmmmssmm
+msmmsmmmmm
+msmmsmsmmm
+mmmmmmmmmm
+mmsmmmmmmm
+mmsmmmsssm
+mmsmmmmmmm
+mmmsssmmmm
+-}
+
 module BattleShip where
 
 import Control.Concurrent
@@ -64,23 +77,29 @@ main = do
     putStrLn $ show regPlayer
     gameLoop initialState
 
+getInt :: IO Int
+getInt = do
+    s <- getLine
+    return (read s)
+
 gameLoop :: State -> IO ()
 gameLoop state@(State shots player) = do
-    randX <- getStdRandom (randomR (0,9))
-    randY <- getStdRandom (randomR (0,9))
-    let shot  = RequestData{player_name = player_name player,
-                            shoot_at = Just [randX, randY]}
-    -- Shoot
-    sht <- shoot shot
-    putStrLn $ show sht
-    -- Radar again
+    --randX <- getStdRandom (randomR (0,9))
+    --randY <- getStdRandom (randomR (0,9))
     radar2 <- radar player
     putStrLn $ show radar2
-    putStrLn "Continue? y/n"
-    line <- getLine
-    case line of
-        "n" -> return ()
-        "y" -> gameLoop (state{shots = shots ++ [[randX, randY]]})
+    putStrLn "Enter X"
+    randX <- getInt
+    putStrLn "Enter Y"
+    randY <- getInt
+    let shot  = RequestData{player_name = player_name player,
+                            shoot_at = Just [randX, randY]}
+    sht <- shoot shot
+    putStrLn $ show sht
+    gameLoop (state{shots = shots ++ [[randX, randY]]})
+--    case line of
+--        "n" -> return ()
+ --       "y" -> gameLoop (state{shots = shots ++ [[randX, randY]]})
 
 signup :: RequestData -> IO ResponseData
 signup user = do body <- sendAndReadResponse user "/battleship/register/"
