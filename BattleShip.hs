@@ -32,6 +32,7 @@ import Control.Concurrent
 import Control.Monad.Trans.Resource
 import Control.Monad.IO.Class
 import Data.Aeson
+import Data.List
 import Data.Maybe
 import GHC.Generics
 import Network.HTTP.Conduit
@@ -48,7 +49,7 @@ data ResponseData = ResponseData
     } deriving (Show, Generic)
 
 data Radar = Radar
-    { board :: [String]
+    { board :: Board
     , won   :: String
     } deriving (Generic)
 
@@ -63,6 +64,7 @@ data State = State
 
 type PlayerName = String
 type Route      = String
+type Board      = [String]
 
 instance FromJSON ResponseData
 instance FromJSON Radar
@@ -97,17 +99,34 @@ getInt = do
 
 gameLoop :: State -> IO ()
 gameLoop state@(State shots player) = do
-    putStrLn "Enter X"
-    xPos <- getInt
-    putStrLn "Enter Y"
-    yPos <- getInt
-    let shot  = RequestData{player_name = player_name player,
-                            shoot_at = Just [xPos, yPos]}
-    sht <- shoot shot
-    putStrLn $ show sht
-    radar <- radar player
-    putStrLn $ show radar
-    gameLoop (state{shots = shots ++ [[xPos, yPos]]})
+    rad1 <- radar player
+    case (hasHit $ board rad1) of
+        False ->
+            do let (x,y) = firstWater (board rad1)
+                   shot  = RequestData{player_name = player_name player,
+                                       shoot_at = Just [x, y]}
+               sht   <- shoot shot
+               putStrLn $ show sht
+               radar <- radar player
+               putStrLn $ show radar
+               gameLoop $ state{shots = shots ++ [[x, y]]}
+        True -> putStrLn "hej"
+
+firstWater :: Board -> (Int, Int)
+firstWater board = let ls     = map (\x->(elem '~' x, x)) board
+                       row    = first ls 0
+                       column = elemIndex '~' (board !! row)
+                   in case (row == -1 || isNothing column) of
+                       True  -> (0, 0)
+                       False -> (fromJust column, row)
+
+first :: [(Bool, String)] -> Int -> Int
+first []       num = (-1)
+first ((True, _):xs) num = num
+first (x:xs)   num = first xs (num+1)
+
+hasHit :: Board -> Bool
+hasHit b = elem 'h' (concat b)
 
 signup :: RequestData -> IO ResponseData
 signup user = do body <- sendAndReadResponse user "/battleship/register/"
