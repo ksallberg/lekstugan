@@ -26,7 +26,7 @@ Perfect hits example:
 ~~~sss~~~~
 -}
 
-module BattleShip where
+module Main where
 
 import Control.Concurrent
 import Control.Monad.Trans.Resource

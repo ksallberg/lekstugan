@@ -16,7 +16,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 executable battleship
-  main-is:             BattleShip.hs
+  main-is:             Main.hs
   -- other-modules:
   -- other-extensions:
   build-depends:       base >=4.7 && <4.8,
