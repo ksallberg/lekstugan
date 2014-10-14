@@ -87,7 +87,7 @@ main :: IO ()
 main = do
     let user = RequestData{player_name = "berra", shoot_at = Nothing}
         initialState = State{shots = [], player = user}
---    reset
+    reset
     regPlayer <- signup user
     putStrLn $ show regPlayer
     gameLoop initialState
@@ -109,6 +109,7 @@ gameLoop state@(State shots player) = do
                putStrLn $ show sht
                radar <- radar player
                putStrLn $ show radar
+               threadDelay 1000000
                gameLoop $ state{shots = shots ++ [[x, y]]}
         True -> putStrLn "hej"
 
