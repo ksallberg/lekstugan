@@ -81,13 +81,13 @@ instance ToJSON RequestData where
                                                     "shoot_at"    .= shot]
 
 hostName :: String
-hostName = "http://localhost:2222"
+hostName = "http://192.168.1.89:28251"
 
 main :: IO ()
 main = do
     let user = RequestData{player_name = "berra", shoot_at = Nothing}
         initialState = State{shots = [], player = user}
-    reset
+--    reset
     regPlayer <- signup user
     putStrLn $ show regPlayer
     gameLoop initialState
