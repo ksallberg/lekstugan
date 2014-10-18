@@ -40,7 +40,7 @@ main = do p <- pick pairLs
 -- pair of FDs -> eval function -> message
 newRound :: (FD,FD) -> (FD->FD->Bool) -> String -> IO ()
 newRound (x,y) f oper =
-   do putStrLn ("Is " ++ show x ++ oper 
+   do putStrLn ("Is " ++ show x ++ oper
                 ++ show y ++ "? yes/no/help?")
       answer <- getLine
       case answer of
@@ -88,7 +88,7 @@ E x ≃ E y = x ≃ y
 x   ≃ y   | x == y    = True
           | otherwise = False
 
--- wrap a failuredetector to 
+-- wrap a failuredetector to
 (⋄) :: FD -> FD
 (⋄) (E x) = error "no eventually in eventually!"
 (⋄) x     = E x
