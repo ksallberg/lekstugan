@@ -1,0 +1,88 @@
+module virt {
+
+    yang-version 1;
+    namespace    "virt:company";
+    prefix       virt;
+    organization "virtualization company";
+    contact      "none";
+    description  "none";
+
+    grouping computer {
+        leaf vcpus {
+            type int32;
+            default "0";
+        }
+        leaf ram {
+            type int32;
+            default "0";
+        }
+        leaf os {
+            type string;
+            default "virtualbox-ubuntu14.04-64";
+        }
+    }
+
+    container map-reduce {
+
+        list mappers {
+            key "name";
+            description "Nodes performing the map stage";
+            leaf name {
+                type string;
+                description "Name of the group of mapper computers.";
+            }
+            container mapper1 {
+                uses computer {
+                    refine vcpus {
+                        default "4";
+                    }
+                    refine ram {
+                        default "2048";
+                    }
+                }
+            }
+            container mapper2 {
+                uses computer {
+                    refine vcpus {
+                        default "4";
+                    }
+                    refine ram {
+                        default "2048";
+                    }
+                }
+            }
+            container mapper3 {
+                uses computer {
+                    refine vcpus {
+                        default "4";
+                    }
+                    refine ram {
+                        default "2048";
+                    }
+                }
+            }
+        }
+
+        list reducers {
+            key "name";
+            description "Nodes performing the reduce stage";
+            leaf name {
+                type string;
+                description "Name of the group of reducer computers";
+            }
+            container reducer1 {
+                uses computer {
+                    refine vcpus {
+                        default "8";
+                    }
+                    refine ram {
+                        default "16384";
+                    }
+                    refine os {
+                        default "vmware-archlinux-x86";
+                    }
+                }
+            }
+        }
+    }
+}
