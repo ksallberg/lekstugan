@@ -4,7 +4,10 @@ import Control.Applicative
 
 -- (<*>) :: Applicative f => f (a -> b) -> f a -> f b
 
+test1 :: [Int]
 test1 = pure (+1) <*> [1,2,3,4]
+
+test2 :: Maybe Int
 test2 = pure (+1) <*> Just 4
 
 -- (*>) :: f a -> f b -> f a
