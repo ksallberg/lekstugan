@@ -1,7 +1,10 @@
 import Control.Applicative
 import Control.Monad
 import Data.Maybe
+
 -- Applicative bra för att jobba med dom här boxxade sakerna
+combo = (fmap (++) ["ha", "heh", "hmm"]) <*> ["?", "!", "."]
+combo2 = (++) <$> ["ha", "heh", "hmm"] <*> ["?", "!", "."]
 
 -- pure :: a -> f a
 testPure :: Maybe Int
