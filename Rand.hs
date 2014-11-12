@@ -5,7 +5,7 @@ main = do putStrLn "testing random"
           randGen <- getStdGen
           let (theResult,newSeed) = theRandomInt randGen
           let (theResult2,_)      = theRandomInt newSeed
-          putStrLn $ "random value: "  ++ show theResult
+          putStrLn $ "random value: "  ++ show theResult
           putStrLn $ "random value2: " ++ show theResult2
 
 theRandomInt :: StdGen -> (Integer,StdGen)
