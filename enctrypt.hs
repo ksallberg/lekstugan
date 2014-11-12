@@ -1,7 +1,6 @@
 import Data.Char (ord, toUpper)
 import Data.Bits
 import Data.List
-import Control.Monad
 import Numeric
 
 cong :: Int -> Int
