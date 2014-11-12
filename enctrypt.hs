@@ -20,6 +20,3 @@ hexAnswer ans = let toHex  = (flip showHex) ""
 
 q7 :: String
 q7 = hexAnswer $ answer "Safe" 43
-
-q10 :: String
-q10 = undefined
