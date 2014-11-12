@@ -5,18 +5,17 @@ import Numeric
 
 type PlainText = String
 
-cong :: Int -> Int
-cong char = (69 * char + 113) `mod` 256
+keyFormula :: Int -> Int
+keyFormula char = (69 * char + 113) `mod` 256
 
-answer :: PlainText -> Int -> [Int]
-answer txt start = map (uncurry xor) $ zip plainTextAscii key
+encrypt :: PlainText -> Int -> [Int]
+encrypt txt start = map (uncurry xor) $ zip plainTextAscii key
     where plainTextAscii = map ord txt
-          key            = take (length txt) $ iterate cong start
+          key            = take (length txt) $ iterate keyFormula start
 
-hexAnswer :: [Int] -> String
-hexAnswer ans = let toHex  = (flip showHex) ""
-                    joined = intercalate " " $ map toHex ans
-                in map toUpper joined
+toHex :: [Int] -> String
+toHex ans = let joined = intercalate " " $ map ((flip showHex "")) ans
+            in map toUpper joined
 
 q7 :: String
-q7 = hexAnswer $ answer "Safe" 43
+q7 = toHex $ encrypt "Safe" 43
