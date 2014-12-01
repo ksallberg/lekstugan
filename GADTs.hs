@@ -1,28 +1,78 @@
+-- Generalized Algebraic Datatype
+-- https://www.haskell.org/haskellwiki/GADTs_for_dummies
+
 {-# LANGUAGE GADTs #-}
 
-data Empty
-data NonEmpty
+-- Either      = type constructor
+-- Left, Right = data constructors
+data MyEither a b = MyLeft a | MyRight b
 
-data List x y where
-   Nil  :: List a Empty
-   Cons :: a -> List a b -> List a NonEmpty
-   Ext  :: a -> b -> List a b
-   Ext2 :: a -> Int -> List a b
+-- working with data constructors (ordinary haskell)
+isLeft (MyLeft a)  = True
+isLeft (MyRight b) = False
 
-safeHead :: List x NonEmpty -> x
-safeHead (Cons a b) = a
+{- work with type constructors
+   X is a TYPE FUNCTION names "X".
 
-ls :: List Int NonEmpty
-ls = Cons 23 Nil
+   a is a type and it returns some type as result
 
-ls2 :: List Int Int
-ls2 = Ext 23 33
+   we cant use X on data values but we can use it on type values
 
-ls3 :: List Int Int
-ls3 = Ext2 444 222
+   type constructors can serve as basic "values" and type functions as a way
+   to process them
 
-s2 :: List a b -> (a,b)
-s2 (Ext a b) = (a,b)
 
-s3 :: List a Int -> (a,Int)
-s3 (Ext2 a b) = (a,b)
+-}
+
+type X a = MyEither a a
+
+{-
+    GADTs
+
+    "If you are wondering how all of these interesting type manipulations
+    relate to GADTs, here is the answer. As you know, Haskell contains
+    highly developed ways to express data-to-data functions. We also know
+    that Haskell contains rich facilities to write type-to-type functions
+    in the form of "type" statements and type classes. But how do "data"
+    statements fit into this infrastructure?
+
+    My answer: they just define a type-to-data constructor translation.
+    Moreover, this translation may give multiple results.
+
+    And here we finally come to GADTs! It's just a way to define data types
+    using pattern matching and constants on the left side of "data"
+    statements!"
+
+    data T String = D1 Int
+         T Bool   = D2
+         T [a]    = D3 (a,a)
+
+    The idea here is to allow a data constructor's return type to be
+    specified directly
+-}
+
+data T a where
+    D1 :: Int -> T String
+    D2 :: T Bool
+    D3 :: (a, a) -> T [a]
+
+-- Amazed? After all, GADTs seem to be a really simple and obvious extension
+-- to data type definition facilities.
+
+data Term a where
+    Lit  :: Int ->  Term Int
+    Pair :: Term a -> Term b -> Term (a,b)
+
+{-
+
+In a function that performs pattern matching on Term, the pattern match gives
+type as well as value information.
+
+If the argument matches Lit, it must have been built with a Lit constructor,
+so type 'a' must be Int, and hence we can return 'i' (an Int) in the right
+hand side. The same thing applies to the Pair constructor.
+-}
+
+eval :: Term a -> a
+eval (Lit i)     = i
+eval (Pair a b)  = (eval a, eval b)
