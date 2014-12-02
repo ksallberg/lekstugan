@@ -63,7 +63,8 @@ data Term a where
     Lit  :: Int ->  Term Int
     Pair :: Term a -> Term b -> Term (a,b)
 
-data Term2 a = Lit2 Int | Pair2 (Term2 a) (Term2 a)
+data Term2 a = Lit2 Int | Pair2 (Term2 a, Term2 a)
+    deriving Show
 
 {-
 
@@ -79,10 +80,9 @@ eval :: Term a -> a
 eval (Lit i)    = i
 eval (Pair a b) = (eval a, eval b)
 
+-- Not possible:
 {-
-Not possible:
-
 eval2 :: Term2 a -> a
-eval2 (Lit2 i)    = i
-eval2 (Pair2 x y) = (eval2 x, eval2 y)
+eval2 (Lit2 i) = i
+eval2 (Pair2 (x, y)) = (eval2 x, eval2 y)
 -}
