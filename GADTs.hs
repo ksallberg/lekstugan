@@ -63,7 +63,7 @@ data Term a where
     Lit  :: Int ->  Term Int
     Pair :: Term a -> Term b -> Term (a,b)
 
-data Term2 a = Lit2 Int | Pair2 (Term2 a)
+data Term2 a = Lit2 Int | Single (Term2 a)
     deriving Show
 
 {-
@@ -83,4 +83,8 @@ eval (Pair a b) = (eval a, eval b)
 -- Not possible to have Term2 a -> a:
 eval2 :: Term2 Int -> Int
 eval2 (Lit2 i) = i
-eval2 (Pair2 x) = eval2 x
+eval2 (Single x) = eval2 x
+
+test1 = eval (Pair (Lit 2) (Lit 3))
+
+test2 = eval2 (Single (Lit2 39))
