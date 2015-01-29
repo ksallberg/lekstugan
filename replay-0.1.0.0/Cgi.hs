@@ -27,7 +27,7 @@ import Network.CGI.Protocol
 
 type Cgi a = Replay Question Answer a
 -- | We use Type to differeniate between
---   the types a user can enter into a 
+--   the types a user can enter into a
 --   textfield. We currently support "int"
 --   and "str" when "type checking"
 
@@ -53,7 +53,7 @@ safeTrace :: [(Trace a,String)] -> Trace a
 safeTrace []        = emptyTrace
 safeTrace ((x,y):_) = x
 
--- | Helper method putting the contents of a list 
+-- | Helper method putting the contents of a list
 --   into pairs (still in a list)
 pair (x:y:xs) = (x,y) : pair xs
 pair _ = []
@@ -64,8 +64,8 @@ reads' :: String -> (Id,Type)
 reads' x = (i, read t :: Type)
            where (i,t) = head (reads x :: [(Id,String)])
 
--- | Used to add many answers recursively through 
---   the addAnswer function imported from Replay 
+-- | Used to add many answers recursively through
+--   the addAnswer function imported from Replay
 --   type :: [(i,q,t)]
 addAnswers :: Trace Answer -> Answer -> Trace Answer
 addAnswers t a | length a > 0 = t `addAnswer` a
@@ -75,8 +75,8 @@ addAnswers t a | length a > 0 = t `addAnswer` a
 --   it's supposed to be. Supports "str" and "int"
 correctTypes :: Answer -> Bool
 correctTypes []     = True
-correctTypes ((_,a,t):xs) = 
-    case t of 
+correctTypes ((_,a,t):xs) =
+    case t of
         IsString -> True && correctTypes xs
         IsInt    -> and [isNumber x | x <- a] && correctTypes xs
 
@@ -92,22 +92,22 @@ runCGI rep = do
   -- Divide the POST into answers, and the trace
   let answersAndTrace = splitOn "&trace=" (urlDecode s)
       -- Get the trace written to HTML in the last run
-      trace = safeTrace 
+      trace = safeTrace
                (reads (
-                  urlDecode 
+                  urlDecode
                      (last answersAndTrace)) :: [(Trace Answer,String)])
-      -- Create a handle for just the answers 
+      -- Create a handle for just the answers
       answers = init answersAndTrace
 
       -- Splitting answers into [(question,answer)]
-      answers' = pair $ concat [splitOn "=" a 
+      answers' = pair $ concat [splitOn "=" a
                                | a <- splitOn "&" (concat answers)
                                ]
-      
+
       -- Apply the haskell parsing (reads) to questions
       -- This is because we store lists and tuples with the show
       -- function generating strings looking exactly like Haskell code
-      answers'' = map (\(it,a) -> (fst $reads' it, a, snd $reads' it)) 
+      answers'' = map (\(it,a) -> (fst $reads' it, a, snd $reads' it))
                       answers'
 
       -- check if the answers are correct or not
@@ -125,7 +125,7 @@ runCGI rep = do
   -- "call" the monad to get whatever page to show next
   -- because of the newTrace call above, we just repeat
   -- the questions if a type check error was detected
-  -- 
+  --
   -- If not, give the next page of questions
   nextRun <- (runReplay rep) newTrace newTrace
 
@@ -143,7 +143,7 @@ runCGI rep = do
 
 -- | Pick the string (answer value) from an answer
 pickStr :: Id -> Answer -> String
-pickStr seek answerT = 
+pickStr seek answerT =
    let (a,b,c) = head (dropWhile (\(x,y,z)->x < seek) (sort answerT))
    in b
 
@@ -161,7 +161,7 @@ pageInit = [ "Content-type: text/html"
            , "<html><body>"
            ]
 
--- | ???????? 
+-- |????????
 genFinalPage :: [String]
 genFinalPage =
  [
@@ -169,15 +169,15 @@ genFinalPage =
  ]
 
 -- | The error page is different from the normal page in that
---   it tells the user to fill in 
+--   it tells the user to fill in
 genErrorPage :: Answer -> Trace Answer -> [String]
 genErrorPage qs r =
- [ 
+ [
   "<form method=POST>"
  , "<p>"
  , "<br/>"
- , concat [q ++ "<input name=" ++ show i ++ show t ++ 
-           "> "++"<font color=red>"++formatError t++"</font>"++"<br/>" 
+ , concat [q ++ "<input name=" ++ show i ++ show t ++
+           "> "++"<font color=red>"++formatError t++"</font>"++"<br/>"
           | (i,q,t) <- qs
           ]
        , "<input type=submit value=OK>"
@@ -197,7 +197,7 @@ formatError IsInt    = "Please enter an integer."
 --   for the current step in the form
 genNormalPage :: Answer -> Trace Answer -> [String]
 genNormalPage qs r =
- [ 
+ [
   "<form method=POST>"
  , "<p>"
  , "<br/>"
