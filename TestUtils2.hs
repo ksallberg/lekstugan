@@ -50,7 +50,7 @@ main = do
 
 {- This is the workhorse that dispatches all calculations and handles errors -}
 performOutputParsing :: TestSpec -> FilePath -> FilePath -> IO ()
-performOutputParsing spec from to = catch 
+performOutputParsing spec from to = catch
    (do file     <- readFile from
        allLines <- sequence [runErrorT $ parseLine str|str<-lines file]
        -- do the statistics calcs
@@ -124,7 +124,7 @@ searchList cmd rank inp | rank == High = reverse ls
 getAvg :: [TimeStamp] -> TimeStamp
 getAvg ls = div (sum ls) (toInteger $ length ls)
 
-{- For a list of times, calculate 99th percentile 
+{- For a list of times, calculate 99th percentile
 @see https://answers.yahoo.com/question/index?qid=1005122102489 -}
 get99P :: [TimeStamp] -> TimeStamp
 get99P ls = last percent99
