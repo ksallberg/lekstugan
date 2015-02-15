@@ -1,5 +1,8 @@
+{-# LANGUAGE GADTs #-}
+
 import Control.Concurrent
 import Control.Concurrent.STM
+import Control.Monad
 import Control.Monad.IO.Class
 
 newtype DList a = DL {unDL :: [a] -> [a]}
@@ -87,3 +90,33 @@ doRead b = atomically $ do (Gold val) <- readTVar b
 
     Yes, if the new value is negative we will try again.
 -}
+
+data Parser tok a where
+    Zero    :: Parser tok ()
+    One     :: Parser tok ()
+    Check   :: (tok   -> Bool) -> Parser tok tok
+    Satisfy :: ([tok] -> Bool) -> Parser tok [tok]
+    Push    :: tok             -> Parser tok a -> Parser tok a
+    Plus    :: Parser tok a    -> Parser tok b -> Parser tok (Either a b)
+    Times   :: Parser tok a    -> Parser tok b -> Parser tok (a, b)
+    Star    :: Parser tok a    -> Parser tok [a]
+
+parse :: MonadPlus m => Parser tok a -> [tok] -> m a
+parse Zero _              = mzero
+parse One []              = return ()
+parse One _               = mzero
+parse (Check p) [t] | p t = return t
+parse (Check p) _         = mzero
+parse (Satisfy p) xs      = case p xs of
+                                True  -> return xs
+                                False -> mzero
+parse (Push t p) ts       = parse p (t:ts)
+parse (Plus p q) ts       = liftM Left  (parse p ts) `mplus`
+                            liftM Right (parse q ts)
+parse (Times p q) []      = liftM2 (,) (parse p []) (parse q [])
+parse (Times p q) (t:ts)  = parse (Times (Push t p) q) ts `mplus`
+                            liftM2 (,) (parse p []) (parse q (t:ts))
+parse (Star p) []         = return []
+parse (Star p) (t:ts)     = do
+    (v, vs) <- parse (Times p (Star p)) (t:ts)
+    return (v:vs)
