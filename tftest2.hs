@@ -18,3 +18,12 @@ type instance XAdd (Suc m) n = Suc (XAdd m n)
 --(+++) :: Vec a n -> Vec a n -> Vec a (Vec a n)
 Nil        +++  ys  =  ys
 Cons x xs  +++  ys  =  Cons x (xs +++ ys)
+
+{-
+λ> :t (Nil +++ Nil)
+(Nil +++ Nil) :: Vec a Zero
+λ> :t Cons 10 Nil
+Cons 10 Nil :: Num a => Vec a (Suc Zero)
+λ> :t (Cons 10 (Cons 20 Nil))
+(Cons 10 (Cons 20 Nil)) :: Num a => Vec a (Suc (Suc Zero))
+-}
