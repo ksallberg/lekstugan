@@ -1,4 +1,4 @@
-import Control.Monad (filterM, forM)
+import Control.Monad (filterM, forM, liftM)
 import Data.Time.Clock
 import Data.Maybe (fromJust)
 import System.FilePath.Posix
@@ -57,7 +57,7 @@ x >? y = (\fp per filesize time -> (x fp per filesize time) > y)
 type Predicate = InfoP Bool
 
 find :: FilePath -> Predicate -> IO [FilePath]
-find path p = getRecursiveContents path >>= filterM check
+find path p = getRecursiveContents path >>= filterN check
     where check name = do perms    <- getPermissions name
                           size     <- getFileSize name
                           modified <- getModificationTime name
@@ -100,11 +100,27 @@ filterM' :: Monad m => (a -> m Bool) -> [a] -> m [a]
 filterM' filtfun xs = foldr (\elem acc -> acc >>=
                                  \unacc -> filtfun elem >>=
                                      \unbool -> case unbool of
-                                                  True -> return ([elem] ++ unacc)
+                                                  True ->
+                                                      return ([elem] ++ unacc)
                                                   False -> acc)
                             (return [])
                             xs
-                      
+
+filterM'' :: (Monad m) => (a -> m Bool) -> [a] -> m [a]
+filterM'' p [] = return []
+filterM'' p (x:xs) =
+    let rest = filterM' p xs in
+        do b <- p x
+           if b then liftM (x:) rest
+                else            rest
+
+filterN :: (Monad m) => (a -> m Bool) -> [a] -> m [a]
+filterN p = foldr go (return [])
+  where
+    go x r = p x >>= \flg ->
+             r   >>= \ys  ->
+                return (if flg then x:ys else ys)
+
 -- type of first argument to foldr: a -> m [b] -> m [b]
 -- example: forM' [1,2,3,4] (\a -> return (a+1))
 forM' :: Monad m => [a] -> (a -> m b) -> m [b]
