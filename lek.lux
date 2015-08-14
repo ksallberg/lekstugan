@@ -1,5 +1,7 @@
-#run as: lux lek.lux
-#[config skip=LINUX]
+# Run as:
+# lux lek.lux
+
+[config timeout=2000]
 
 [global bob=23]
 
