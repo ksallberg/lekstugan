@@ -27,8 +27,13 @@
 [endmacro]
 
 [shell apa]
+    [local xxx=Haj]
     !echo "Hej"
-    ?Hej
+    # Match exactly, no regex or variable replacement
+    ???Hej
+    !echo "Haj"
+    # regex shut off but variable replacement still on
+    ??$xxx
     [invoke monkey]
     [local lobb=12]
     [invoke testVar2]
