@@ -1,3 +1,4 @@
+#run as: lux lek.lux
 #[config skip=LINUX]
 
 [global bob=23]
