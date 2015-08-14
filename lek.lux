@@ -1,0 +1,44 @@
+#[config skip=LINUX]
+
+[global bob=23]
+
+[macro monkey]
+    !echo "shark"
+    ?shark
+    !echo "dogShark"
+    ?dog[Ssv]hark
+[endmacro]
+
+[macro testVar]
+    !echo $bob
+    ?23
+[endmacro]
+
+[macro testVar2]
+    !echo $lobb
+    ?12
+[endmacro]
+
+[macro myVar]
+    [my kobb=2342]
+    !echo $kobb
+    ?2342
+[endmacro]
+
+[shell apa]
+    !echo "Hej"
+    ?Hej
+    [invoke monkey]
+    [local lobb=12]
+    [invoke testVar2]
+
+[shell bepa]
+    !echo "hoj"
+    ?hoj
+    [invoke testVar]
+    [local lobb=12]
+    [invoke testVar2]
+    [invoke myVar]
+
+[cleanup]
+    !echo "hej"
