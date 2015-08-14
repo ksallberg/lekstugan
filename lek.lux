@@ -41,5 +41,10 @@
     [invoke testVar2]
     [invoke myVar]
 
+[shell final]
+    [global bob=2999]
+    !echo $bob
+    ?2999
+
 [cleanup]
     !echo "hej"
