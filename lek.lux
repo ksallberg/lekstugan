@@ -1,0 +1,57 @@
+# Run as:
+# lux lek.lux
+
+[config timeout=2000]
+
+[global bob=23]
+
+[macro monkey]
+    !echo "shark"
+    ?shark
+    !echo "dogShark"
+    ?dog[Ssv]hark
+[endmacro]
+
+[macro testVar]
+    !echo $bob
+    ?23
+[endmacro]
+
+[macro testVar2]
+    !echo $lobb
+    ?12
+[endmacro]
+
+[macro myVar]
+    [my kobb=2342]
+    !echo $kobb
+    ?2342
+[endmacro]
+
+[shell apa]
+    [local xxx=Haj]
+    !echo "Hej"
+    # Match exactly, no regex or variable replacement
+    ???Hej
+    !echo "Haj"
+    # regex shut off but variable replacement still on
+    ??$xxx
+    [invoke monkey]
+    [local lobb=12]
+    [invoke testVar2]
+
+[shell bepa]
+    !echo "hoj"
+    ?hoj
+    [invoke testVar]
+    [local lobb=12]
+    [invoke testVar2]
+    [invoke myVar]
+
+[shell final]
+    [global bob=2999]
+    !echo $bob
+    ?2999
+
+[cleanup]
+    !echo "hej"
