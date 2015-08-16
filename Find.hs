@@ -17,42 +17,54 @@ type InfoP a =  FilePath    -- path to directory entry
              -> a
 
 constP :: a -> InfoP a
-constP x = (\fp per filesize time -> x)
+constP x = \fp per filesize time -> x
 
 liftPc :: (a -> b -> c) -> InfoP a -> b -> InfoP c
+liftPc q f k w x y z = f w x y z `q` k
+{-
 liftPc fun infa b = (\fp per filesize time ->
                         let a = (infa fp per filesize time)
                         in fun a b)
+-}
 
 liftP2 :: (a -> b -> c) -> InfoP a -> InfoP b -> InfoP c
+liftP2 q f g w x y z = f w x y z `q` g w x y z
+{-
 liftP2 fun infa infb = (\fp per filesize time ->
                          let a = (infa fp per filesize time)
                              b = (infb fp per filesize time)
                          in fun a b)
+-}
 
 liftPath :: (FilePath -> a) -> InfoP a
-liftPath fpfun = (\fp _ _ _ ->
-                     (fpfun fp))
+liftPath fpfun = \fp _ _ _ -> fpfun fp
 
+-- combinator function
 (&&?) :: InfoP Bool -> InfoP Bool -> InfoP Bool
+(&&?) = liftP2 (&&)
+{-
 x &&? y = (\fp per filesize time ->
               (x fp per filesize time) && (y fp per filesize time))
+-}
 
 (||?) :: InfoP Bool -> InfoP Bool -> InfoP Bool
+(||?) = liftP2 (||)
+{-
 x ||? y = (\fp per filesize time ->
               (x fp per filesize time) || (y fp per filesize time))
+-}
 
 pathP :: InfoP FilePath
-pathP = (\fp _ _ _ -> fp)
+pathP = \fp _ _ _ -> fp
 
 sizeP :: InfoP Integer
-sizeP = (\_ _ filesize _ -> filesize)
+sizeP = \_ _ filesize _ -> filesize
 
 (==?) :: (Eq a) => InfoP a -> a -> InfoP Bool
-x ==? y = (\fp per filesize time -> (x fp per filesize time) == y)
+x ==? y = \fp per filesize time -> (x fp per filesize time) == y
 
 (>?) :: (Ord a) => InfoP a -> a -> InfoP Bool
-x >? y = (\fp per filesize time -> (x fp per filesize time) > y)
+x >? y = \fp per filesize time -> (x fp per filesize time) > y
 
 type Predicate = InfoP Bool
 
@@ -108,11 +120,11 @@ filterM' filtfun xs = foldr (\elem acc -> acc >>=
 
 filterM'' :: (Monad m) => (a -> m Bool) -> [a] -> m [a]
 filterM'' p [] = return []
-filterM'' p (x:xs) =
-    let rest = filterM' p xs in
-        do b <- p x
-           if b then liftM (x:) rest
-                else            rest
+filterM'' p (x:xs) = do
+    let rest = filterM' p xs
+    b <- p x
+    if b then liftM (x:) rest
+         else            rest
 
 filterN :: (Monad m) => (a -> m Bool) -> [a] -> m [a]
 filterN p = foldr go (return [])
