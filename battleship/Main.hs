@@ -81,7 +81,7 @@ instance ToJSON RequestData where
                                                     "shoot_at"    .= shot]
 
 hostName :: String
-hostName = "http://192.168.1.89:28251"
+hostName = "http://localhost:28251"
 
 main :: IO ()
 main = do
