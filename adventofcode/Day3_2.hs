@@ -1,4 +1,4 @@
-module Day3_1 (main) where
+module Day3_2 (main) where
 
 import Data.List
 
