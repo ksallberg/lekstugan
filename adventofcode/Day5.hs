@@ -18,7 +18,7 @@ loop :: Context ()
 loop = do
     line <- liftIO getLine
     curAmount <- get
-    case isNiceLine line of
+    case isNiceLinePt2 line of
         True  -> put $ curAmount + 1
         False -> return ()
     eof <- liftIO isEOF
@@ -26,6 +26,9 @@ loop = do
 
 isNiceLine :: String -> Bool
 isNiceLine str = threeVowels str && twice str && notContains str
+
+isNiceLinePt2 :: String -> Bool
+isNiceLinePt2 str = repeats str && has2Pairs str
 
 threeVowels :: String -> Bool
 threeVowels str = length (filter ((flip elem) "aeiou") str) >= 3
@@ -37,3 +40,39 @@ twice (a:b:xs) = a == b || twice (b:xs)
 
 notContains :: String -> Bool
 notContains str = not $ any ((flip isInfixOf) str) ["ab", "cd", "pq", "xy"]
+
+repeats :: String -> Bool
+repeats [] = False
+repeats [_, _] = False
+repeats (a:b:c:xs) = a == c || repeats (b:c:xs)
+
+has2Pairs :: String -> Bool
+has2Pairs str = step2Pairs pairs str
+    where pairs = allPairs str
+
+step2Pairs :: [String] -> String -> Bool
+step2Pairs [] _ = False
+step2Pairs (p:ps) str =
+    case length (splitOn p str) >= 3 of
+        True  -> True
+        False -> step2Pairs ps str
+
+allPairs :: String -> [String]
+allPairs [] = []
+allPairs [_] = []
+allPairs (x:y:z) = [x,y] : allPairs (y:z)
+
+{-
+has2Pairs :: String -> Bool
+has2Pairs str = length (allPairs str) > length (nub (allPairs str))
+
+allPairs :: String -> [String]
+allPairs (x:y:z) = [[x,y]] ++ allPairs' (x:y:z)
+
+allPairs' :: String -> [String]
+allPairs' []    = []
+allPairs' [_]   = []
+allPairs' [_,_] = []
+allPairs' (x:y:z:ls) | x == y && y == z = allPairs' (y:z:ls)
+                     | otherwise = [[y,z]] ++ allPairs' (y:z:ls)
+-}
