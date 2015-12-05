@@ -61,18 +61,3 @@ allPairs :: String -> [String]
 allPairs [] = []
 allPairs [_] = []
 allPairs (x:y:z) = [x,y] : allPairs (y:z)
-
-{-
-has2Pairs :: String -> Bool
-has2Pairs str = length (allPairs str) > length (nub (allPairs str))
-
-allPairs :: String -> [String]
-allPairs (x:y:z) = [[x,y]] ++ allPairs' (x:y:z)
-
-allPairs' :: String -> [String]
-allPairs' []    = []
-allPairs' [_]   = []
-allPairs' [_,_] = []
-allPairs' (x:y:z:ls) | x == y && y == z = allPairs' (y:z:ls)
-                     | otherwise = [[y,z]] ++ allPairs' (y:z:ls)
--}
