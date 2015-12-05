@@ -1,26 +1,25 @@
 module Day2_2 (main) where
 
 import Control.Monad
-import Control.Monad.IO.Class
-import Control.Monad.Trans.State.Lazy
+import Control.Monad.State.Lazy
 import Data.List.Split
 import Data.List
 import System.IO
 
-type Context = StateT Int IO
+type Context = State Int
 
 main :: IO ()
 main = do
-    (_,y) <- runStateT loop 0
+    c <- getContents
+    let (_, y) = runState (loop (lines c)) 0
     putStrLn (show y)
 
-loop :: Context ()
-loop = do
-    line <- liftIO getLine
+loop :: [String] -> Context ()
+loop [] = return ()
+loop (l:ls) = do
     curAmount <- get
-    put $ curAmount + calcDatRibbon line
-    eof <- liftIO isEOF
-    unless eof loop
+    put $ curAmount + calcDatRibbon l
+    loop ls
 
 calcDatRibbon :: String -> Int
 calcDatRibbon str =
