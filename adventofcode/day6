@@ -1,0 +1,17 @@
+#!/usr/bin/env escript
+
+%% When test.txt is a \n separated list, run as: ./day6 < test.txt
+main(_Args) ->
+    Lines = collect_lines([]),
+    io:format("Output: ~p~n", [Lines]),
+    ok.
+
+collect_lines(Xs) ->
+    case io:fread("", "~s") of
+        {ok, [X]}  ->
+            collect_lines(Xs ++ [X]);
+        eof ->
+            Xs;
+        {error, _} ->
+            Xs
+    end.
