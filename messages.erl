@@ -8,11 +8,12 @@ init() ->
     P2 = spawn(?MODULE, run, [p1]),
     register(p2, P2),
     p1 ! start,
-    spawn(?MODULE, killer, [[p1, p2]]).
+    spawn(?MODULE, killer, [[p1, p2]]),
+    messages_helper:help_me().
 
 killer(KillList) ->
     io:format("time to kill..~n"),
-    timer:sleep(1000),
+    timer:sleep(25),
     lists:foreach(fun(Proc) ->
                       Proc ! stop,
                       unregister(Proc)
