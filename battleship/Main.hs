@@ -14,16 +14,16 @@ mmsmmmmmmm
 mmmsssmmmm
 
 Perfect hits example:
-~~~~~~~~s~
-~s~s~~~~~~
-~s~~~~ss~~
-~s~~s~~~~~
-~s~~s~s~~~
-~~~~~~~~~~
-~~s~~~~~~~
-~~s~~~sss~
-~~s~~~~~~~
-~~~sss~~~~
+--------s-
+-s-s------
+-s----ss--
+-s--s-----
+-s--s-s---
+----------
+--s-------
+--s---sss-
+--s-------
+---sss----
 -}
 
 module Main where
@@ -114,9 +114,9 @@ gameLoop state@(State shots player) = do
         True -> putStrLn "hej"
 
 firstWater :: Board -> (Int, Int)
-firstWater board = let ls     = map (\x->(elem '~' x, x)) board
+firstWater board = let ls     = map (\x->(elem '-' x, x)) board
                        row    = first ls 0
-                       column = elemIndex '~' (board !! row)
+                       column = elemIndex '-' (board !! row)
                    in case (row == -1 || isNothing column) of
                        True  -> (0, 0)
                        False -> (fromJust column, row)
