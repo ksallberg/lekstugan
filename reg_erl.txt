@@ -1,0 +1,1 @@
+re:split("/aaa/xxx/bwbwb","([/])",[{return,list}]).
