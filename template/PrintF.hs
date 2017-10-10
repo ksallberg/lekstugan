@@ -30,14 +30,18 @@ args :: [Format] -> [PatQ]
 args fmt = concatMap argsMapper (zip fmt names)
     where names = [ mkName $ 'x' : show i | i <- [0..] ]
 
+bodyMapper :: Name -> Format -> ExpQ
+bodyMapper _ (L s) = stringE s
+bodyMapper n D     = appE [| show |] (varE n)
+bodyMapper n S     = varE n
+
+bodyFolder :: ExpQ -> ExpQ -> ExpQ
+bodyFolder e e' = infixApp e [| (++) |] e'
+
 -- generate body of the function
 body :: [Format] -> ExpQ
-body fmt = foldr (\ e e' -> infixApp e [| (++) |] e') (last exps) (init exps)
-    where exps = [ case f of
-                    L s -> stringE s
-                    D   -> appE [| show |] (varE n)
-                    S   -> varE n
-                 | (f,n) <- zip fmt names ]
+body fmt = foldr bodyFolder (last exps) (init exps)
+    where exps  = [ bodyMapper n f | (f,n) <- zip fmt names ]
           names = [ mkName $ 'x' : show i | i <- [0..] ]
 
 -- glue the argument list and body together into a lambda
