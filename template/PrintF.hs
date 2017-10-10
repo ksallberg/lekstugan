@@ -19,11 +19,15 @@ tokenize ('%':'s':rest) = S : tokenize rest
 tokenize (s:str) = L (s:p) : tokenize rest -- so we don't get stuck on weird '%'
     where (p, rest) = span (/= '%') str
 
+-- only keep D and S in args
+argsMapper :: (Format, Name) -> [PatQ]
+argsMapper (L _, n) = []
+argsMapper (_, n)   = [varP n]
+
 -- generate argument list for the function
+-- concatMap :: Foldable t => (a -> [b]) -> t a -> [b]
 args :: [Format] -> [PatQ]
-args fmt = concatMap (\(f,n) -> case f of
-                                  L _ -> []
-                                  _   -> [varP n]) $ zip fmt names
+args fmt = concatMap argsMapper (zip fmt names)
     where names = [ mkName $ 'x' : show i | i <- [0..] ]
 
 -- generate body of the function
