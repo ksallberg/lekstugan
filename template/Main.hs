@@ -1,3 +1,5 @@
+-- source from https://wiki.haskell.org/Template_Haskell
+
 {-# LANGUAGE TemplateHaskell #-}
 
 module Main where

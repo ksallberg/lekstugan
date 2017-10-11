@@ -1,3 +1,5 @@
+-- source from https://wiki.haskell.org/Template_Haskell
+
 {-# LANGUAGE TemplateHaskell #-}
 module PrintF where
 
@@ -25,15 +27,22 @@ argsMapper (L _, n) = []
 argsMapper (_, n)   = [varP n]
 
 -- generate argument list for the function
+
 -- concatMap :: Foldable t => (a -> [b]) -> t a -> [b]
 args :: [Format] -> [PatQ]
 args fmt = concatMap argsMapper (zip fmt names)
     where names = [ mkName $ 'x' : show i | i <- [0..] ]
 
+-- appE :: ExpQ -> ExpQ -> ExpQ
+-- stringE :: String -> ExpQ
+-- varE :: Name -> ExpQ
+
 bodyMapper :: Name -> Format -> ExpQ
 bodyMapper _ (L s) = stringE s
 bodyMapper n D     = appE [| show |] (varE n)
 bodyMapper n S     = varE n
+
+-- infixApp :: ExpQ -> ExpQ -> ExpQ -> ExpQ
 
 bodyFolder :: ExpQ -> ExpQ -> ExpQ
 bodyFolder e e' = infixApp e [| (++) |] e'
