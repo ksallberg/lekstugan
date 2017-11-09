@@ -24,5 +24,23 @@ test = $(printf "Error: %s on line %d") "Bad var" 123
 -- kan inte enkelt operera over tupel
 test3 = $(tmap 3 4) (+1) (1,2,3,4)
 
--- kan inte enkelt gora tupel av lista?
-test4 = $(tuple 4) [1,2,3,4]
+{-|
+ I $(tuple 4) skapar man vid compile time en funktion
+ som opererar over en tupel med 4 element.
+
+ Sjalva funktionen genererar man med kod i Tuple.hs
+ (metaprogrammering), man kan pa sa satt skapa generisk
+ kod istallet for att behova hårdkoda konverteringen från
+ lista till tupel direkt i haskellkod.
+
+ Jämför med test4_no_meta under som *måste* vara hårdkodad.
+ Samma sak att läsa från en godtycklig plats i en tupel.
+-}
+test4 :: (Int, Int, Int, Int)
+test4 = $(tuple (length [1,2,3,4])) [1,2,3,4]
+
+test4_no_meta :: (Int, Int, Int, Int)
+test4_no_meta = test4_no_meta' [1,2,3,4]
+
+test4_no_meta' :: [Int] -> (Int, Int, Int, Int)
+test4_no_meta' [a, b, c, d] = (a, b, c, d)
