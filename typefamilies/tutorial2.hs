@@ -12,6 +12,7 @@
 module Main where
 
 import Data.Kind
+import Data.Either
 
 type Body = [Char]
 
@@ -51,4 +52,10 @@ mkValidRequest m = do
     Right SPOST -> Right $ Req SPOST requestBody
 
 main :: IO ()
-main = return ()
+main = do
+  let x = mkValidRequest GET
+      y = isLeft x
+      x' = mkValidRequest POST
+      y' = isRight x'
+  putStrLn $ "hej: " ++ show y ++ ", " ++ show y'
+  return ()
