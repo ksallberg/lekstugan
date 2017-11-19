@@ -1,13 +1,8 @@
 -- https://functional.works-hub.com/blog/Dependent-Types-in-Haskell-2
 
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE StandaloneDeriving #-}
 
 {-
 Req (SMethod m) (DependentType m)
@@ -17,14 +12,16 @@ Req (SMethod m) (DependentType m)
     Req (SMethod GET) (DependentType GET)
     Req SGET          ()
 
-    (SGET :: SMethod 'GET)
+      (DependentType byts ut mot ())
+      (SGET :: SMethod 'GET)
 
   * POST
 
     Req (SMethod POST) (DependentType POST)
     Req SPOST          (Maybe Body)
 
-    (SPOST :: SMethod 'POST)
+      (DependentType byts ut mot (Maybe Body))
+      (SPOST :: SMethod 'POST)
 -}
 
 module Main where
@@ -38,14 +35,12 @@ data Method = GET | POST
   deriving (Show)
 
 data SMethod m where
-  SGET  :: m ~ 'GET  => SMethod m
-  SPOST :: m ~ 'POST => SMethod m
-
-deriving instance Show (SMethod m)
+  SGET  :: SMethod GET
+  SPOST :: SMethod POST
 
 type family DependentType (m :: Method) :: Type where
   DependentType 'GET = ()
-  DependentType 'POST = Maybe Body
+  DependentType 'POST = Body
 
 -- this type should remind you of our ∑ type
 -- Σ (x :: Bool) (if x then Int else String)
@@ -59,11 +54,10 @@ mkSMethod m =
 
 mkValidRequest :: Method -> Either (Request GET) (Request POST)
 mkValidRequest m = do
-  let requestBody = (Just "POST BODY" :: Maybe Body)
   let sm = mkSMethod m
   case sm of
     Left  SGET  -> Left $ Req SGET ()
-    Right SPOST -> Right $ Req SPOST requestBody
+    Right SPOST -> Right $ Req SPOST "POST BODY"
 
 main :: IO ()
 main = do
@@ -73,3 +67,12 @@ main = do
       y' = isRight x'
   putStrLn $ "hej: " ++ show y ++ ", " ++ show y'
   return ()
+
+apa :: () -> Request 'GET
+apa = Req SGET
+
+bepa :: Body -> Request 'POST
+bepa = Req SPOST
+
+-- to crash:
+--   ghci> let x = Req SGET "get"
