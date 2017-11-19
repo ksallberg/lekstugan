@@ -9,6 +9,24 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
+{-
+Req (SMethod m) (DependentType m)
+
+  * GET
+
+    Req (SMethod GET) (DependentType GET)
+    Req SGET          ()
+
+    (SGET :: SMethod 'GET)
+
+  * POST
+
+    Req (SMethod POST) (DependentType POST)
+    Req SPOST          (Maybe Body)
+
+    (SPOST :: SMethod 'POST)
+-}
+
 module Main where
 
 import Data.Kind
@@ -16,26 +34,22 @@ import Data.Either
 
 type Body = [Char]
 
-data Method
-  = GET
-  | POST
+data Method = GET | POST
   deriving (Show)
 
 data SMethod m where
-  SGET  :: m ~ GET  => SMethod m
-  SPOST :: m ~ POST => SMethod m
+  SGET  :: m ~ 'GET  => SMethod m
+  SPOST :: m ~ 'POST => SMethod m
 
 deriving instance Show (SMethod m)
 
-type family IfGetThenUnitElseMaybeBody (m :: Method) :: Type where
-  IfGetThenUnitElseMaybeBody GET = ()
-  IfGetThenUnitElseMaybeBody POST = Maybe Body
+type family DependentType (m :: Method) :: Type where
+  DependentType 'GET = ()
+  DependentType 'POST = Maybe Body
 
 -- this type should remind you of our ∑ type
 -- Σ (x :: Bool) (if x then Int else String)
-data Request m =
-  Req (SMethod m)
-      (IfGetThenUnitElseMaybeBody m)
+data Request m = Req (SMethod m) (DependentType m)
 
 mkSMethod :: Method -> Either (SMethod GET) (SMethod POST)
 mkSMethod m =

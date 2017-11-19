@@ -8,6 +8,14 @@ import PrintF (printf)
 import Tuple (tmap,
               tuple)
 
+{-
+template$ ghci -XTemplateHaskell
+GHCi, version 8.2.1: http://www.haskell.org/ghc/  :? for help
+Prelude> :m + Language.Haskell.TH
+Prelude Language.Haskell.TH> runQ [| \x -> 1 |]
+LamE [VarP x_0] (LitE (IntegerL 1))
+-}
+
 main :: IO ()
 main = putStrLn test
 
