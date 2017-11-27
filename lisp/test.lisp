@@ -12,12 +12,6 @@
 (format t "x: ~D ~%"
         x)
 
-(setq y (get-file "run.sh"))
+(setq y (get-file "test.lisp"))
 
-(defun print-elements-of-list (list)
-  "print elements"
-  (while list
-    (print (car list))
-    (print (cdr list))))
-
-(print-elements-of-list y)
+(print y)
