@@ -11,3 +11,13 @@
 (setq x 10)
 (format t "x: ~D ~%"
         x)
+
+(setq y (get-file "run.sh"))
+
+(defun print-elements-of-list (list)
+  "print elements"
+  (while list
+    (print (car list))
+    (print (cdr list))))
+
+(print-elements-of-list y)
