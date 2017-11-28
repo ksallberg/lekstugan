@@ -29,3 +29,13 @@
    (+ 100 0)
    (+ 200 2)
    ))
+
+(defun foo () 5)
+
+(defun foo2 (x) 4)
+
+(defun test-if2 (in)
+  (if (> in 20)
+   100
+   200
+   ))
