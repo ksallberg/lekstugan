@@ -96,3 +96,10 @@
             do (setq ,result (append ,result (list ,expression))))
            ;; return the result
        ,result)))
+
+;; macroexpand
+
+;; Break 6 [8]> (macroexpand '(lcomp x for x in (range 10) if (= (mod x 2) 0)))
+;; (LET ((#:G3238 NIL)) (LOOP FOR X IN (RANGE 10) IF (= (MOD X 2) 0)
+;;                        DO (SETQ #:G3238 (APPEND #:G3238 (LIST X)))) #:G3238);
+;; T
