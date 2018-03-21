@@ -12,14 +12,14 @@
    Status report:
 
    I have implemented the basic parser and the basic interpreter, they
-   work in the sense that I've not been able to find any bugs 
-   
+   work in the sense that I've not been able to find any bugs
+
    I have not implemented any of the extra features.
 
    Known bugs:
       In the interpreter, it's not possible to assign constants. This is more
       of a "not implemented" problem than a bug though
-   
+
    the function 'program "file.calgol"' can be used to parse from a file
 
    programFromText can be used to pass "calgol" source code straight
@@ -41,7 +41,35 @@ type Var = String
    Just a simple test
 -}
 main :: IO ()
-main = programFromText "{ [a,b,c,n,i,apa,bepa] read i; read a; n := 1; while (i>0) { n := 2*n; i := i-1; if(apa==bepa) { read apa; while(a==b) { write apa; }; } else { write bepa; }; };write n; i := 2*3; while(i==3) { [w] if(a==2){ i:=n; }else{ i:=2; }; }; };"
+main = programFromText $
+        unlines [ "{"
+                , "[a,b,c,n,i,apa,bepa]"
+                , "         read i;"
+                , "         read a;"
+                , "         n := 1;"
+                , "         while (i>0) {"
+                , "           n := 2*n;"
+                , "           i := i-1;"
+                , "           if(apa==bepa) {"
+                , "             read apa;"
+                , "             while(a==b) {"
+                , "               write apa;"
+                , "             };"
+                , "           } else {"
+                , "             write bepa;"
+                , "           };"
+                , "         };"
+                , "         write n;"
+                , "         i := 2*3;"
+                , "         while(i==3) {"
+                , "           [w]"
+                , "           if(a==2){"
+                , "             i:=n;"
+                , "           }else{"
+                , "             i:=2;"
+                , "           };"
+                , "        };"
+                , "};" ]
 
 {-
    Language name: calgol
@@ -67,7 +95,7 @@ data BoolExp
 
 {- I have replace begin with block throught the program
    to reflect my C style syntax
--} 
+-}
 data Stmt
    = Block [Decl] [Stmt]
    | AssignVar Var IntExp
@@ -103,7 +131,7 @@ parseVar =
       return (first:varName)
 
 {- parsers for the IntExp constructor
-   
+
    run parseIntExp "2*3" => Mul 2 3
    run parseIntExp "2*4+1" => Mul 2 (Add 3 1) --wrong op prec
    run parseIntExp "ab-23" => Sub ab 32
@@ -115,7 +143,7 @@ parseIntExp :: Parser IntExp
 parseIntExp = try parseBinOps <|> parseVarOrConst
 
 {-
-   This uses parseVar, and just wraps it in a IVar 
+   This uses parseVar, and just wraps it in a IVar
    so not gonna unit test it.
 -}
 parseIVar :: Parser IntExp
@@ -151,7 +179,7 @@ parseVarOrConst = try parseIVar <|> parseConstant
 
 {-
    Parse any binop
-   this can also parse a varOrConst because it's 
+   this can also parse a varOrConst because it's
    co-recursive with parseOps (which needs to be able to parse
    vars or constans)
 
@@ -218,7 +246,33 @@ getMatchingBoolOp "==" a b = Equals a b
    This is what can parse a program. It looks for statements ended
    with a semi-colon.
 
-   run parseStmt "{ [a,b,c] read i; n := 1; while (i>0) { n := 2*n; i := i-1; if(apa==bepa) { read apa; while(a==b) { write apa; }; } else { write bepa; }; }; write n; i= 2*3; while(p==3) {[w]if(a==2){i:=n;}else{i:=2;}; }; };" => gives syntax tree back
+   run parseStmt "{
+                   [a,b,c]
+                   read i;
+                   n := 1;
+                   while (i>0) {
+                     n := 2*n;
+                     i := i-1;
+                     if(apa==bepa) {
+                       read apa;
+                         while(a==b) {
+                           write apa;
+                         };
+                     } else {
+                       write bepa;
+                     };
+                   };
+                   write n;
+                   i= 2*3;
+                   while(p==3) {
+                     [w]
+                     if(a==2){
+                       i:=n;
+                     }else{
+                       i:=2;
+                     };
+                   };
+                 };" => gives syntax tree back
    run parseStmt "i=2;" => AssignCon "i" (ICon 2)
    run parseStmt "2;" => fail (no stmt)
    run parseStmt "a<2;" => fail (no stmt)
@@ -236,11 +290,25 @@ parseStmt =
    This is a collection of all parts that form the statement. It can parse all
    subparts in a stmt. It is used by parseStmt
 
-   run parseStmt "while(b>a){ while(y < x){ if(r€t) {write x} else { read h} } }"
+   run parseStmt "while(b>a){
+                    while(y < x){
+                      if(r€t) {
+                        write x
+                      }
+                      else {
+                        read h
+                      }
+                    }
+                  }"
       => gives syntax tree
 -}
 parseStmtAll :: Parser Stmt
-parseStmtAll = try parseBlock <|> try parseWhile <|> try parseIfThenElse <|> try parseAssign <|> try parseWrite <|> parseRead
+parseStmtAll = try parseBlock <|>
+               try parseWhile <|>
+               try parseIfThenElse <|>
+               try parseAssign <|>
+               try parseWrite <|>
+               parseRead
 
 {-
    parseBlock is used to parse a block with either a list
@@ -343,14 +411,14 @@ parseRead =
       return (Read varName)
 
 {-
-   parse while loop, 
-   
+   parse while loop,
+
    first a conditional
    then a block
-   
+
    this is also co-recursive with the parseStmt parser so
    several while loops can be nested in each other
-   
+
    run parseWhile "while() {};" => fail (no conditional)
    run parseWhile "while(a>3) ;" => fail (no block)
    run parseWhile "while(a>3) {};"
@@ -371,7 +439,7 @@ parseWhile =
    then a boolean expression
    then )
 
-   run parseConditional "a>3" => fail (no parenthesis, I 
+   run parseConditional "a>3" => fail (no parenthesis, I
       want my syntax to be that way)
    run parseConditional "(a>4)" => GThan (IVar "a") (ICon 4)
 -}
@@ -389,9 +457,9 @@ parseConditional =
 {-
    parse an if statement
 
-   if followed by a conditional, a block ... 
+   if followed by a conditional, a block ...
       followed by an else and a block
-   
+
    run parseIfThenElse "if (a>b) {i:=2;} else {read w;};"
       => gives a syntax tree
    run parseIfThenElse "if () {i:=2;} else {read w;};"
@@ -414,7 +482,7 @@ parseIfThenElse =
 
 
 {-
-   Parse the declarations. either a declarations has 
+   Parse the declarations. either a declarations has
    more after it, or not.
 
    run parseDecl "ww" => ww
@@ -488,7 +556,7 @@ lookUpInd var (x:xs) | var == v    = Just i
 {- update all variables in all scopes with the same name
    using lookUp' to see if the var is already in the environment
     -> in that case, just update var
-    -> if not in the environment, add it at the last place to 
+    -> if not in the environment, add it at the last place to
          the last part of the environment
 
    update "w" 4 [[("w",3),("c",4)],[("d",9)]]
@@ -497,9 +565,9 @@ lookUpInd var (x:xs) | var == v    = Just i
       => [[("x",3),("c",4)],[("d",9),("w",5)]]
 -}
 update :: Var -> Int -> Env -> Env
-update var val env 
-   | isJust (lookUp' var env) = 
-      [ [ update' (v,i) (var,val) | (v,i) <- envList ] 
+update var val env
+   | isJust (lookUp' var env) =
+      [ [ update' (v,i) (var,val) | (v,i) <- envList ]
       | envList <- env ]
    | otherwise = init env ++ [last env ++ [(var,val)]]
 
@@ -523,7 +591,7 @@ writeStuff =
    Helper function, recursively update many variables
 -}
 updateMany :: [(Var,Int)] -> Env -> Env
-updateMany []     env = env 
+updateMany []     env = env
 updateMany (x:xs) env = updateMany xs (update (fst x) (snd x) env)
 
 {-
@@ -538,7 +606,7 @@ updateMany (x:xs) env = updateMany xs (update (fst x) (snd x) env)
    sequence to be lined up
 -}
 decideOnStmtMany :: [Stmt] -> StateT (Stmt,Env) IO ()
-decideOnStmtMany []     = 
+decideOnStmtMany []     =
    do return ()
 decideOnStmtMany (x:xs) =
    do decideOnStmt x
@@ -551,9 +619,9 @@ decideOnStmtMany (x:xs) =
    Given any sort of Stmt type ,it will pattern match
    against it, and do something appropriate with it.
 
-   The statement monad will hold the current state (including 
-   environment)of the program. And the function will 
-   typically fetch the state and modify it in a single 
+   The statement monad will hold the current state (including
+   environment)of the program. And the function will
+   typically fetch the state and modify it in a single
    function call.
 -}
 decideOnStmt :: Stmt -> StateT (Stmt,Env) IO ()
@@ -561,7 +629,8 @@ decideOnStmt (Block decl stmt) =
    do stateAndEnv <- get
       let decl = getDeclFromBlock (fst stateAndEnv)
       let stmt = getStmtFromBlock (fst stateAndEnv)
-      let newEnv = updateMany (zip decl (repeat 0)) (snd stateAndEnv ++ [[]]) -- add a new scope to the block
+      -- add a new scope to the block
+      let newEnv = updateMany (zip decl (repeat 0)) (snd stateAndEnv ++ [[]])
       put (fst stateAndEnv, newEnv)
       decideOnStmtMany stmt
       stateANdEnv2 <- get
@@ -582,10 +651,11 @@ decideOnStmt (Read var) =
       return ()
 decideOnStmt (Write intExp) =
    do stmtAndEnv <- get
-      sputStrLn ("Writing variable: " ++ show intExp ++ " -> " ++ show (evalIntExp intExp (snd stmtAndEnv)))
+      sputStrLn ("Writing variable: " ++ show intExp ++ " -> " ++
+                 show (evalIntExp intExp (snd stmtAndEnv)))
       put stmtAndEnv
       return ()
-decideOnStmt (IfThenElse boolExp stmt stmt2) = 
+decideOnStmt (IfThenElse boolExp stmt stmt2) =
    do stmtAndEnv <- get
       let boolResult = evalBool boolExp (snd stmtAndEnv)
       if boolResult then
@@ -609,7 +679,7 @@ decideOnStmt (While boolExp stmt) =
 {-
    while loop
    separated it because it was easier for me to think
-   when it was alone. Now I can just store away the env 
+   when it was alone. Now I can just store away the env
    once and then everything inside the block happens here
    and the conditional (bool::BoolExp) never changes but
    is evaluated every run of the loop
@@ -642,7 +712,7 @@ getStmtFromBlock (Block decl stmt) = stmt
 
 {-
    Used to evaluate IntExp expressions recursively
-   
+
    it's required to pass an environment because
    the evaluator checks variables agains t
 
@@ -699,22 +769,78 @@ program fp =
          Left err ->
             do putStrLn "Error parsing the program at:"
                print err
-         Right x -> 
+         Right x ->
             do putStrLn "Parsing completed!"
                (a,s) <- runStateT writeStuff (x,[])
                return ()
 
 {-
-   Well a copy from the one above but I include it 
+   Well a copy from the one above but I include it
    just to be able to show some simple programs...
 
    please be sure to remove any weird tabs caused by the multiple lines
    when running the unit test below. at least I get those when
    copying from vim
 
-   programFromText "{ [a,b,c,d,e,z] read d; b := 23; a := 34; c:= a+b; write c; if(d>100) { [qw,ewr] c:=d; qw := 1; ewr := 2*2*4*1*4*2*1+1; write qw; write ewr; }else{ e:=c; qw := 3; ewr := 4; write qw; write ewr; }; while(a < 36) { a:=a+1;  write a; while(z < 100) { z := z+1; }; }; };"
+   programFromText "{
+                     [a,b,c,d,e,z]
+                     read d;
+                     b := 23;
+                     a := 34;
+                     c:= a+b;
+                     write c;
+                     if(d>100) {
+                       [qw,ewr]
+                       c:=d;
+                       qw := 1;
+                       ewr := 2*2*4*1*4*2*1+1;
+                       write qw;
+                       write ewr;
+                     }else{
+                       e:=c;
+                       qw := 3;
+                       ewr := 4;
+                       write qw;
+                       write ewr;
+                     };
 
-   programFromText "{ [a,b,c,n,i,apa,bepa] read i; read a; n := 1; while (i>0) { n := 2*n; i := i-1; if(apa==bepa) { read apa; while(a==b) { write apa; }; } else { write bepa; }; };write n; i := 2*3; while(i==3) { [w] if(a==2){ i:=n; }else{ i:=2; }; }; };"
+                     while(a < 36) {
+                       a:=a+1;
+                       write a;
+                       while(z < 100) {
+                         z := z+1;
+                       };
+                     };
+                    };"
+
+   programFromText "{
+                     [a,b,c,n,i,apa,bepa]
+                     read i;
+                     read a;
+                     n := 1;
+                     while (i>0) {
+                       n := 2*n;
+                       i := i-1;
+                       if(apa==bepa) {
+                         read apa;
+                         while(a==b) {
+                           write apa;
+                         };
+                       } else {
+                         write bepa;
+                       };
+                     };
+                     write n;
+                     i := 2*3;
+                     while(i==3) {
+                       [w]
+                       if(a==2){
+                         i:=n;
+                       }else{
+                         i:=2;
+                       };
+                     };
+                   };"
 -}
 programFromText :: String -> IO()
 programFromText st =
