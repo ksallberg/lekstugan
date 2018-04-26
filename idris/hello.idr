@@ -9,6 +9,9 @@ main = putStrLn "Hello, Idris world!"
 test : Vect 1 Char
 test = ['b']
 
+test43 : Vect 1 Char
+test43 = ['a']
+
 test2 : Vect 2 Char
 test2 = ['a', 'b']
 
