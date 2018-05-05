@@ -94,6 +94,8 @@ void quick_sort(int a[], int low, int high) {
   int pivot_index;
   if(low < high) {
     pivot_index = partition(a, low, high);
+    // pivot_index är nu i mitten och varje sida är sorterad
+    // efter den
     quick_sort(a, low, pivot_index-1);
     quick_sort(a, pivot_index+1, high);
   }
@@ -112,3 +114,7 @@ int partition(int a[], int low, int high) {
   swap(&a[i+1], &a[high]);
   return i+1;
 }
+
+
+
+// has any side reached the pivot element?
