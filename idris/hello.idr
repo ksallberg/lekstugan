@@ -47,3 +47,37 @@ tuple = (1, (2, (3, 4)))
 
 cons : List String
 cons = "kons" :: ["tig"]
+
+-- Implement code where input (QueryType) is "linked" to output (QueryResult)
+-- and that the code can not give the wrong result back.
+data QueryType = Financials | Company | Batch
+
+data QueryResult : QueryType -> Type where
+  FinancialsResult : QueryResult Financials
+  CompanyResult : (companyName : String) -> QueryResult Company
+  BatchResult : (amount : Nat) -> QueryResult Batch
+
+doQuery : (x : QueryType) -> QueryResult x
+doQuery Financials = FinancialsResult
+doQuery Company = CompanyResult "aapl"
+doQuery Batch = BatchResult 42
+
+-- doQuery Batch = FinancialsResult --BatchResult 42
+
+{-
+- + Errors (1)
+ `-- hello.idr line 63 col 16:
+     When checking right hand side of doQuery with expected type
+             QueryResult Batch
+
+     Type mismatch between
+             QueryResult Financials (Type of FinancialsResult)
+     and
+             QueryResult Batch (Expected type)
+
+     Specifically:
+             Type mismatch between
+                     Financials
+             and
+                     Batch
+-}
