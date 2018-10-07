@@ -1,0 +1,42 @@
+<html>
+
+  <head>
+    <script type="text/javascript">
+      var ls = [93, 98, 59, 29, 100, 9, 23, 45, 7, 12, 1, 99,
+                -2, 0, 15, 4, 11, 9, 32, -10, -11, 95, 92];
+
+      function qsort(list) {
+        if(list.length == 0) {
+          return [];
+        }
+        var piv  = list.pop();
+        var larg = [];
+        var smal = [];
+        var newls = [];
+        for(var i = 0; i < list.length; i ++) {
+          if(list[i] <= piv) {
+            smal.push(list[i]);
+          } else {
+            larg.push(list[i]);
+          }
+        }
+        var newSmal = qsort(smal);
+        var newLarg = qsort(larg);
+        for(var i = 0; i < newSmal.length; i ++) {
+          newls.push(newSmal[i]);
+        }
+        newls.push(piv);
+        for(var i = 0; i < newLarg.length; i ++) {
+          newls.push(newLarg[i]);
+        }
+        return newls;
+      }
+
+      console.log("sorted: ", qsort(ls));
+    </script>
+  </head>
+
+  <body>
+  </body>
+
+</html>
