@@ -5,6 +5,7 @@
       var ls = [93, 98, 59, 29, 100, 9, 23, 45, 7, 12, 1, 99,
                 -2, 0, 15, 4, 11, 9, 32, -10, -11, 95, 92];
 
+      // High space complexity due to creating a lot of new arrays
       function qsort(list) {
         if(list.length == 0) {
           return [];
