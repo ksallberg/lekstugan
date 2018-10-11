@@ -21,8 +21,7 @@ int is_sorted(int a[]) {
 
 void main()
 {
-  int a[] = {93, 98, 59, 29, 100, 9, 23, 45, 7, 12, 1, 99,
-             -2, 0, 15, 4, 11, 9, 32, -10, -11, 95, 92};
+  int a[] = {9, 6, 4, 8, 1, 3, 2, 0};
   int i = 0;
   len = sizeof(a) / sizeof(int);
 
@@ -51,10 +50,22 @@ void quick_sort(int number[], int first, int last) {
   int piv = first;
   int left = first;
   int right = last;
+  int i = 0;
   printf("Pivot: %d\n", piv);
   if(first > last) {
     return;
   }
+
+  printf("\n\nKOmer in: \n");
+  for(i=0; i<len; i++) {
+    if( i >= first && i <= last) {
+      printf("_%d_", number[i]);
+    } else {
+      printf(",%d,", number[i]);
+    }
+  }
+  printf("\n\n");
+
   // Mål, få alla värden mindre än vad piv pekar på,
   // på vänster sida om vad piv pekar på.
 
@@ -86,6 +97,7 @@ void quick_sort(int number[], int first, int last) {
   // Left är nu större eller lika med right
   // Byt ut pivot-elementet med vad right pekar på
   swap(&number[right], &number[piv]);
+
   // Den vänstra delen, right-1 tar inte med pivot
   quick_sort(number, first, right - 1);
   // Den högra delen, right+1 tar inte med pivot
