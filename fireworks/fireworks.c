@@ -1,6 +1,12 @@
 /* Ask for an OpenGL Core Context */
+
 #define GLFW_INCLUDE_GLCOREARB
+#define GLFW_INCLUDE_GLU
+
 #include <GLFW/glfw3.h>
+
+#include <stdlib.h>
+#include <stdio.h>
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -14,14 +20,8 @@ int main(int argc, char** argv)
      return -1;
   }
 
-  /* We need to explicitly ask for a 3.2 context on OS X */
-  glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 2);
-  glfwWindowHint (GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
   /* Create a windowed mode window and its OpenGL context */
-  window = glfwCreateWindow( 1280, 720, "Hello World", NULL, NULL );
+  window = glfwCreateWindow(1280, 720, "Hello World", NULL, NULL);
   if (!window)
   {
      glfwTerminate();
@@ -30,12 +30,25 @@ int main(int argc, char** argv)
 
   /* Make the window's context current */
   glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
 
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(window))
   {
     /* Render here */
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the buffers
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glBegin(GL_TRIANGLES);
+    glColor3f(1.f, 1.f, 0.f);
+    glVertex3f(-0.6f, -0.4f, 0.f);
+    glColor3f(0.f, 1.f, 0.f);
+    glVertex3f(0.6f, -0.4f, 0.f);
+    glColor3f(0.f, 0.f, 1.f);
+    glVertex3f(0.f, 0.6f, 0.f);
+    glEnd();
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
