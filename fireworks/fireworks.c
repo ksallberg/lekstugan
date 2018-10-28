@@ -5,26 +5,23 @@
 
 #include <GLFW/glfw3.h>
 
-#include <stdlib.h>
-#include <stdio.h>
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
+
   GLFWwindow* window;
+  int xpos = -1, ypos;
 
   /* Initialize the library */
-  if ( !glfwInit() )
-  {
+  if ( !glfwInit() ) {
      return -1;
   }
 
   /* Create a windowed mode window and its OpenGL context */
   window = glfwCreateWindow(1280, 720, "Hello World", NULL, NULL);
 
-  if (!window)
-  {
+  if (!window) {
      glfwTerminate();
      return -1;
   }
@@ -32,10 +29,11 @@ int main(int argc, char** argv)
   /* Make the window's context current */
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
-
+  // glutInit(&argc, argv);
   /* Loop until the user closes the window */
-  while (!glfwWindowShouldClose(window))
-  {
+
+
+  while (!glfwWindowShouldClose(window)) {
     /* Render here */
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
@@ -56,6 +54,12 @@ int main(int argc, char** argv)
 
     /* Poll for and process events */
     glfwPollEvents();
+
+    if(xpos == -1) {
+      glfwGetWindowPos(window, &xpos, &ypos);
+      glfwSetWindowPos(window, xpos+1, ypos);
+      glfwSetWindowPos(window, xpos, ypos);
+    }
   }
 
   glfwTerminate();

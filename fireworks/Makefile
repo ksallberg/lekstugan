@@ -15,7 +15,7 @@ build:
 	$(comp) fireworks.c $(flags)
 
 clean:
-	rm a.out
+	rm -f a.out
 
 run:
 	./a.out
