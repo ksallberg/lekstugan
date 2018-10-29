@@ -7,7 +7,7 @@ endif
 
 ifeq ($(UNAME_S), Darwin)
     comp := clang
-    flags := -lglfw -framework CoreVideo -framework OpenGL -framework IOKit -framework Cocoa -framework Carbon fireworks.c
+    flags := -lglfw -framework CoreVideo -framework OpenGL -framework IOKit -framework Cocoa -framework Carbon
 endif
 
 
