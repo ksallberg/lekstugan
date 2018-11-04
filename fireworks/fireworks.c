@@ -1,13 +1,16 @@
-/* Ask for an OpenGL Core Context */
-
 #define GLFW_INCLUDE_GLCOREARB
 #define GLFW_INCLUDE_GLU
 
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
+#include <math.h>
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
-float hoj = 0.004f;
+float gravity = 0.00004f;
+
+struct holder {
+  struct rocket *raket;
+  struct holder *next;
+};
 
 struct rocket {
   float x;
@@ -20,8 +23,13 @@ struct rocket {
 struct point {
   float x;
   float y;
+  float angle;
   float speed;
 };
+
+float to_radian(float degree) {
+  return degree * M_PI / 180.0;
+}
 
 struct rocket *new_rocket() {
   struct rocket *raket;
@@ -36,25 +44,57 @@ struct rocket *new_rocket() {
     raket->subrockets[i]->x = 0.0f;
     raket->subrockets[i]->y = 0.0f;
     raket->subrockets[i]->speed = (1+i)/(float)100000;
+    raket->subrockets[i]->angle = to_radian(36 * i);
   }
   return raket;
 }
 
+void delete_rocket(struct rocket *raket) {
+  int i = 0;
+  for(i = 0; i < 10; i ++) {
+    free(raket->subrockets[i]);
+  }
+  free(raket);
+}
+
+void delete_holder(struct holder *hold) {
+  struct rocket *therocket = hold->raket;
+  delete_rocket(therocket);
+  free(hold);
+}
+
 struct rocket *therocket = NULL;
+struct holder *theholder = NULL;
+
+void add_rocket(struct holder *hold) {
+  struct rocket *newraket = NULL;
+  struct holder *it = hold;
+  struct holder *newnext = NULL;
+  newraket = new_rocket();
+  if(it->raket == NULL) {
+    it->raket= newraket;
+  } else {
+    while(it->next != NULL) {
+      it = it->next;
+    }
+    newnext = malloc(sizeof *newnext);
+    newnext->raket = newraket;
+    newnext->next = NULL;
+    it->next = newnext;
+  }
+}
 
 /* Draw a little diamond at a certain coordinate */
 void draw_spot(float x, float y) {
+  float rad = 0.008f;
   glBegin(GL_TRIANGLES);
-  glColor3f(1.f, 1.f, 1.f);
-  glVertex3f(x, y-hoj, 1);
-  /* glColor3f(0.f, 1.f, 0.f); */
-  glVertex3f(x + hoj/1.5, y, 1);
-  /* glColor3f(0.f, 0.f, 1.f); */
-  glVertex3f(x, y + hoj, 1);
-  /* glColor3f(1.f, 1.f, 1.f); */
-  glVertex3f(x, y+hoj, 1);
-  glVertex3f(x-hoj/1.5, y, 1);
-  glVertex3f(x, y-hoj, 1);
+  glColor3f(1.f, .5f, .5f);
+  glVertex3f(x, y-rad, 1);
+  glVertex3f(x + rad/1.5, y, 1);
+  glVertex3f(x, y + rad, 1);
+  glVertex3f(x, y+rad, 1);
+  glVertex3f(x-rad/1.5, y, 1);
+  glVertex3f(x, y-rad, 1);
   glEnd();
 }
 
@@ -64,7 +104,7 @@ static void key_callback(GLFWwindow *window,
                          int action,
                          int mods) {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-    therocket = new_rocket();
+    add_rocket(theholder);
   }
 }
 
@@ -73,16 +113,19 @@ int main(int argc, char** argv) {
   GLFWwindow* window;
   int xpos = -1, ypos;
   int i = 0;
-  float hej = 0.0f;
-  struct rocket raketen;
+  int matare = 0;
 
-  raketen.x = 0.0f;
-  raketen.y = -0.75f;
+  struct holder *it = NULL;
+  struct rocket *therocket;
 
   /* Initialize the library */
   if ( !glfwInit() ) {
      return -1;
   }
+
+  theholder = malloc(sizeof *theholder);
+  theholder->raket = NULL;
+  theholder->next = NULL;
 
   /* Create a windowed mode window and its OpenGL context */
   window = glfwCreateWindow(1280, 720, "Hello World", NULL, NULL);
@@ -101,25 +144,57 @@ int main(int argc, char** argv) {
   while (!glfwWindowShouldClose(window)) {
     /* Render here */
     int width, height;
+    matare = 0;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT);
+    it = theholder;
+    while(it != NULL) {
+      therocket = it->raket;
+      if(therocket != NULL) {
+        if(therocket->lifetime >= 20000) {
+          struct holder *temp = theholder->next;
+          /* specialfall, om det bara finns en holder,
+             ska vi inte ta bort den for det sabbar
+             antagandet att det alltid finns en
+             -> ta istallet bort raketen inuti
 
-    if(therocket == NULL) {
-
-    } else {
-      draw_spot(therocket->x, therocket->y);
-      if(therocket->lifetime >= 2100) {
-        for(i = 0; i < 10; i ++) {
-          (therocket->subrockets[i])->y += (therocket->subrockets[i])->speed;
-          draw_spot(therocket->x + (therocket->subrockets[i])->x,
-                    therocket->y + (therocket->subrockets[i])->y);
+             (man hade istallet kunnat allokera en
+              ny holder sedan nar man lagger till
+              en ny raket nasta gang)
+          */
+          if(theholder->next == NULL) {
+            delete_rocket(therocket);
+            theholder->raket=NULL;
+          } else {
+            delete_holder(theholder);
+            theholder = temp;
+          }
+          /* theholder = temp; */
+          /* it = temp; */
+        } else if(therocket->lifetime >= 2100) {
+          for(i = 0; i < 10; i ++) {
+            int life = therocket->lifetime;
+            float old_x = (therocket->subrockets[i])->x;
+            float old_y = (therocket->subrockets[i])->y;
+            float angle = (therocket->subrockets[i])->angle;
+            float new_x = old_x + (float) cos(angle) * 0.0003;
+            float new_y = old_y + (((float) sin(angle) * 1 - gravity)/life);
+            (therocket->subrockets[i])->x = new_x;
+            (therocket->subrockets[i])->y = new_y;
+            draw_spot(therocket->x + new_x, therocket->y + new_y);
+            therocket->lifetime ++;
+          }
+        } else {
+          draw_spot(therocket->x, therocket->y);
+          therocket->y += 0.0004;
+          therocket->lifetime ++;
         }
-      } else {
-        therocket->y += 0.0004;
-        therocket->lifetime ++;
       }
+      it = it->next;
+      matare++;
     }
+    printf("langd: %d\n", matare);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
@@ -135,5 +210,6 @@ int main(int argc, char** argv) {
   }
 
   glfwTerminate();
+  free(theholder);
   return 0;
 }
