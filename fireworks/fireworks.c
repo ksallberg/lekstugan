@@ -22,6 +22,7 @@ struct rocket {
   float r;
   float g;
   float b;
+  float spread;
   struct point *myself;
   struct point *subrockets[10];
 };
@@ -59,6 +60,7 @@ struct rocket *new_rocket() {
   raket->g = float_rand(0.0f, 1.0f);
   raket->b = float_rand(0.0f, 1.0f);
   raket->myself = malloc(sizeof *point);
+  raket->spread = float_rand(0.00008f, 0.0007f);
   for(j = 0; j < TRAIL; j ++) {
     raket->myself->prevx[j] = -100.0f;
     raket->myself->prevy[j] = -100.0f;
@@ -192,8 +194,6 @@ int main(int argc, char** argv) {
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  /* glfwEnable(GL_BLEND); */
-  /* glfwBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); */
 
   while (!glfwWindowShouldClose(window)) {
     /* Render here */
@@ -232,8 +232,8 @@ int main(int argc, char** argv) {
             float old_x = (therocket->subrockets[i])->x;
             float old_y = (therocket->subrockets[i])->y;
             float angle = (therocket->subrockets[i])->angle;
-            float new_x = old_x + (float) cos(angle) * 0.0002;
-            float new_y = old_y + (float) sin(angle) * 0.00020;
+            float new_x = old_x + (float) cos(angle) * therocket->spread;
+            float new_y = old_y + (float) sin(angle) * therocket->spread;
 
             // trail effect
             (therocket->subrockets[i])->prevx[TRAIL-1] = old_x;
