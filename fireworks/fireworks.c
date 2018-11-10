@@ -1,5 +1,6 @@
 #define GLFW_INCLUDE_GLCOREARB
 #define GLFW_INCLUDE_GLU
+#define TRAIL 80
 
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
@@ -20,6 +21,7 @@ struct rocket {
   float r;
   float g;
   float b;
+  struct point *myself;
   struct point *subrockets[10];
 };
 
@@ -28,6 +30,8 @@ struct point {
   float y;
   float angle;
   float speed;
+  float prevx[TRAIL];
+  float prevy[TRAIL];
 };
 
 // https://stackoverflow.com/questions/13408990/ \
@@ -43,8 +47,9 @@ float to_radian(float degree) {
 
 struct rocket *new_rocket() {
   struct rocket *raket;
-  int i = 0;
+  int i, j = 0;
   float r = 35.0f;
+  struct point *point;
   raket = malloc(sizeof *raket);
   raket->x = 0.0f;
   raket->y = -0.75f;
@@ -52,14 +57,22 @@ struct rocket *new_rocket() {
   raket->r = float_rand(0.0f, 1.0f);
   raket->g = float_rand(0.0f, 1.0f);
   raket->b = float_rand(0.0f, 1.0f);
+  raket->myself = malloc(sizeof *point);
+  for(j = 0; j < TRAIL; j ++) {
+    raket->myself->prevx[j] = -100.0f;
+    raket->myself->prevy[j] = -100.0f;
+  }
   (*raket).lifetime = 0; // en alternativ syntax
   for(i = 0; i < 10; i ++) {
-    struct point *point;
     raket->subrockets[i] = malloc(sizeof *point);
     raket->subrockets[i]->x = 0.0f;
     raket->subrockets[i]->y = 0.0f;
     raket->subrockets[i]->speed = (1+i)/(float)100000;
     raket->subrockets[i]->angle = to_radian(36 * i);
+    for(j = 0; j < TRAIL; j ++) {
+      raket->subrockets[i]->prevx[j] = -100.0f;
+      raket->subrockets[i]->prevy[j] = -100.0f;
+    }
   }
   return raket;
 }
@@ -69,6 +82,7 @@ void delete_rocket(struct rocket *raket) {
   for(i = 0; i < 10; i ++) {
     free(raket->subrockets[i]);
   }
+  free(raket->myself);
   free(raket);
 }
 
@@ -100,12 +114,29 @@ void add_rocket(struct holder *hold) {
 }
 
 /* Draw a little diamond at a certain coordinate */
-void draw_spot(struct rocket *rock, float extra_x, float extra_y) {
-  float rad = 0.008f;
+void draw_spot(struct rocket *rock,
+               float extra_x, float extra_y, float alpha) {
+  float rad = 0.003f;
   float x = rock->x + extra_x;
   float y = rock->y + extra_y;
   glBegin(GL_TRIANGLES);
-  glColor3f(rock->r, rock->g, rock->b);
+  glColor4f(rock->r, rock->g, rock->b, alpha);
+  glVertex3f(x, y-rad, 1);
+  glVertex3f(x + rad/1.5, y, 1);
+  glVertex3f(x, y + rad, 1);
+  glVertex3f(x, y+rad, 1);
+  glVertex3f(x-rad/1.5, y, 1);
+  glVertex3f(x, y-rad, 1);
+  glEnd();
+}
+
+/* Draw a little diamond at a certain coordinate */
+void draw_pt(struct point *pt, float alpha) {
+  float rad = 0.003f;
+  float x = pt->x;
+  float y = pt->y;
+  glBegin(GL_TRIANGLES);
+  glColor4f(1.0f, 0.5f, 0.5f, alpha);
   glVertex3f(x, y-rad, 1);
   glVertex3f(x + rad/1.5, y, 1);
   glVertex3f(x, y + rad, 1);
@@ -130,7 +161,6 @@ int main(int argc, char** argv) {
   GLFWwindow* window;
   int xpos = -1, ypos;
   int i = 0;
-  int matare = 0;
 
   struct holder *it = NULL;
   struct rocket *therocket;
@@ -158,13 +188,14 @@ int main(int argc, char** argv) {
   glfwSetKeyCallback(window, key_callback);
   /* Loop until the user closes the window */
 
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   /* glfwEnable(GL_BLEND); */
   /* glfwBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); */
 
   while (!glfwWindowShouldClose(window)) {
     /* Render here */
     int width, height;
-    matare = 0;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -201,14 +232,34 @@ int main(int argc, char** argv) {
             float angle = (therocket->subrockets[i])->angle;
             float new_x = old_x + (float) cos(angle) * 0.0002;
             float new_y = old_y + (float) sin(angle) * 0.00020;
+
+            // trail effect
+            (therocket->subrockets[i])->prevx[TRAIL-1] = old_x;
+            (therocket->subrockets[i])->prevy[TRAIL-1] = old_y;
+
+            for(int j=0; j < TRAIL-1; j++) {
+              (therocket->subrockets[i])->prevy[j] =
+                (therocket->subrockets[i])->prevy[j+1];
+
+              (therocket->subrockets[i])->prevx[j] =
+                (therocket->subrockets[i])->prevx[j+1];
+            }
+
+            for(int j=0; j < TRAIL; j++) {
+              draw_spot(therocket,
+                        (therocket->subrockets[i])->prevx[j],
+                        (therocket->subrockets[i])->prevy[j],
+                        (float) j / 600.0f);
+            }
             new_y -= gravity * time_since_explo * 0.00009;
             (therocket->subrockets[i])->x = new_x;
             (therocket->subrockets[i])->y = new_y;
-            draw_spot(therocket, new_x, new_y);
+            draw_spot(therocket, new_x, new_y, 1.0f);
+
             therocket->lifetime ++;
           }
         } else {
-          draw_spot(therocket, 0, 0);
+          draw_spot(therocket, 0, 0, 1.0f);
           float old_x = therocket->x;
           float old_y = therocket->y;
           float angle = therocket->angle;
@@ -216,15 +267,34 @@ int main(int argc, char** argv) {
           float new_x = old_x + (float) cos(angle) * sideways_mod;
           float vertical_mod = (float) (2600-therocket->lifetime*2.4)/1000000;
           float new_y = old_y + (float) sin(angle) * vertical_mod;
+          int j = 0;
           therocket->x = new_x;
           therocket->y = new_y;
           therocket->lifetime ++;
+
+          // trail effect
+          (therocket->myself)->prevx[TRAIL-1] = old_x;
+          (therocket->myself)->prevy[TRAIL-1] = old_y;
+
+          for(int j=0; j < TRAIL-1; j++) {
+            (therocket->myself)->prevy[j] =
+              (therocket->myself)->prevy[j+1];
+
+            (therocket->myself)->prevx[j] =
+              (therocket->myself)->prevx[j+1];
+          }
+
+          struct point pp;
+          for(int j=0; j < TRAIL; j++) {
+            pp.x = (therocket->myself)->prevx[j];
+            pp.y = (therocket->myself)->prevy[j];
+            draw_pt(&pp,
+                      (float) j / 600.0f);
+          }
         }
       }
       it = it->next;
-      matare++;
     }
-    printf("langd: %d\n", matare);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
