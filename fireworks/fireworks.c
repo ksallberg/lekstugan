@@ -213,7 +213,7 @@ int main(int argc, char** argv) {
     while(it != NULL) {
       therocket = it->raket;
       if(therocket != NULL) {
-        if(therocket->lifetime >= 20000) {
+        if(therocket->lifetime >= 14000) {
           struct holder *temp = theholder->next;
           /* specialfall, om det bara finns en holder,
              ska vi inte ta bort den for det sabbar
