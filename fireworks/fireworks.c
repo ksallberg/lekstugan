@@ -1,6 +1,6 @@
 #define GLFW_INCLUDE_GLCOREARB
 #define GLFW_INCLUDE_GLU
-#define TRAIL 80
+#define TRAIL 22
 
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
@@ -120,7 +120,7 @@ void draw_spot(struct rocket *rock,
   float rad = 0.003f;
   float x = rock->x + extra_x;
   float y = rock->y + extra_y;
-  float alpha2 = alpha - (((float) rock->lifetime - explode_time*2)/ 15000);
+  float alpha2 = alpha - (((float) rock->lifetime - explode_time*2)/ 3000);
   glBegin(GL_TRIANGLES);
   glColor4f(rock->r, rock->g, rock->b, alpha2);
   glVertex3f(x, y-rad, 1);
@@ -153,7 +153,7 @@ static void key_callback(GLFWwindow *window,
                          int scancode,
                          int action,
                          int mods) {
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+  if (key == GLFW_KEY_ESCAPE) {
     add_rocket(theholder);
   }
 }
@@ -239,19 +239,21 @@ int main(int argc, char** argv) {
             (therocket->subrockets[i])->prevx[TRAIL-1] = old_x;
             (therocket->subrockets[i])->prevy[TRAIL-1] = old_y;
 
-            for(int j=0; j < TRAIL-1; j++) {
-              (therocket->subrockets[i])->prevy[j] =
-                (therocket->subrockets[i])->prevy[j+1];
+            if(therocket->lifetime % 4 == 0) {
+              for(int j=0; j < TRAIL-1; j++) {
+                (therocket->subrockets[i])->prevy[j] =
+                  (therocket->subrockets[i])->prevy[j+1];
 
-              (therocket->subrockets[i])->prevx[j] =
-                (therocket->subrockets[i])->prevx[j+1];
+                (therocket->subrockets[i])->prevx[j] =
+                  (therocket->subrockets[i])->prevx[j+1];
+              }
             }
 
             for(int j=0; j < TRAIL; j++) {
               draw_spot(therocket,
                         (therocket->subrockets[i])->prevx[j],
                         (therocket->subrockets[i])->prevy[j],
-                        (float) j / 600.0f);
+                        (float) j / 5.0f);
             }
             new_y -= gravity * time_since_explo * 0.00009;
             (therocket->subrockets[i])->x = new_x;
@@ -261,7 +263,6 @@ int main(int argc, char** argv) {
             therocket->lifetime ++;
           }
         } else {
-          draw_spot(therocket, 0, 0, 1.0f);
           float old_x = therocket->x;
           float old_y = therocket->y;
           float angle = therocket->angle;
@@ -278,12 +279,14 @@ int main(int argc, char** argv) {
           (therocket->myself)->prevx[TRAIL-1] = old_x;
           (therocket->myself)->prevy[TRAIL-1] = old_y;
 
-          for(int j=0; j < TRAIL-1; j++) {
-            (therocket->myself)->prevy[j] =
-              (therocket->myself)->prevy[j+1];
+          if(therocket->lifetime % 2 == 0) {
+            for(int j=0; j < TRAIL-1; j++) {
+              (therocket->myself)->prevy[j] =
+                (therocket->myself)->prevy[j+1];
 
-            (therocket->myself)->prevx[j] =
-              (therocket->myself)->prevx[j+1];
+              (therocket->myself)->prevx[j] =
+                (therocket->myself)->prevx[j+1];
+            }
           }
 
           struct point pp;
@@ -291,8 +294,10 @@ int main(int argc, char** argv) {
             pp.x = (therocket->myself)->prevx[j];
             pp.y = (therocket->myself)->prevy[j];
             draw_pt(&pp,
-                      (float) j / 600.0f);
+                      (float) j / 25.0f);
           }
+
+          draw_spot(therocket, 0, 0, 1.0f);
         }
       }
       it = it->next;
