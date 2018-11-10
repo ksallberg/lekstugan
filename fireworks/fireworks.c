@@ -50,6 +50,7 @@ float to_radian(float degree) {
 struct rocket *new_rocket() {
   struct rocket *raket;
   int i, j = 0;
+  int normal = 1;
   float r = 35.0f;
   struct point *point;
   raket = malloc(sizeof *raket);
@@ -66,12 +67,22 @@ struct rocket *new_rocket() {
     raket->myself->prevy[j] = -100.0f;
   }
   (*raket).lifetime = 0; // en alternativ syntax
+
+  if(rand() % 7 == 0) {
+    normal = 0;
+  }
+
   for(i = 0; i < 10; i ++) {
     raket->subrockets[i] = malloc(sizeof *point);
     raket->subrockets[i]->x = 0.0f;
     raket->subrockets[i]->y = 0.0f;
     raket->subrockets[i]->speed = (1+i)/(float)100000;
-    raket->subrockets[i]->angle = to_radian(36 * i);
+
+    if(!normal) {
+      raket->subrockets[i]->angle = to_radian(36 * i + rand());
+    } else {
+      raket->subrockets[i]->angle = to_radian(36 * i);
+    }
     for(j = 0; j < TRAIL; j ++) {
       raket->subrockets[i]->prevx[j] = -100.0f;
       raket->subrockets[i]->prevy[j] = -100.0f;

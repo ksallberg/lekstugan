@@ -19,3 +19,6 @@ clean:
 
 run:
 	./a.out
+
+mem:
+	valgrind --leak-check=yes a.out
