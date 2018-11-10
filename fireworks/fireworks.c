@@ -7,6 +7,7 @@
 #include <math.h>
 
 float gravity = 0.00074f;
+int explode_time = 1200;
 
 struct holder {
   struct rocket *raket;
@@ -119,8 +120,9 @@ void draw_spot(struct rocket *rock,
   float rad = 0.003f;
   float x = rock->x + extra_x;
   float y = rock->y + extra_y;
+  float alpha2 = alpha - (((float) rock->lifetime - explode_time*2)/ 15000);
   glBegin(GL_TRIANGLES);
-  glColor4f(rock->r, rock->g, rock->b, alpha);
+  glColor4f(rock->r, rock->g, rock->b, alpha2);
   glVertex3f(x, y-rad, 1);
   glVertex3f(x + rad/1.5, y, 1);
   glVertex3f(x, y + rad, 1);
@@ -223,9 +225,9 @@ int main(int argc, char** argv) {
           }
           /* theholder = temp; */
           /* it = temp; */
-        } else if(therocket->lifetime >= 1200) {
+        } else if(therocket->lifetime >= explode_time) {
           for(i = 0; i < 10; i ++) {
-            int time_since_explo = therocket->lifetime - 2100;
+            int time_since_explo = therocket->lifetime - explode_time;
             int life = therocket->lifetime;
             float old_x = (therocket->subrockets[i])->x;
             float old_y = (therocket->subrockets[i])->y;
