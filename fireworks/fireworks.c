@@ -130,7 +130,7 @@ void add_rocket(struct holder *hold) {
 /* Draw a little diamond at a certain coordinate */
 void draw_spot(struct rocket *rock,
                float extra_x, float extra_y, float alpha) {
-  float rad = 0.003f;
+  float rad = 0.0035f;
   float x = rock->x + extra_x;
   float y = rock->y + extra_y;
   float alpha2 = alpha - (((float) rock->lifetime - explode_time*2)/ 3000);
@@ -154,10 +154,7 @@ void draw_pt(struct point *pt, float alpha) {
   glColor4f(1.0f, 0.5f, 0.5f, alpha);
   glVertex3f(x, y-rad, 1);
   glVertex3f(x + rad/1.5, y, 1);
-  glVertex3f(x, y + rad, 1);
-  glVertex3f(x, y+rad, 1);
-  glVertex3f(x-rad/1.5, y, 1);
-  glVertex3f(x, y-rad, 1);
+  glVertex3f(x-rad/1.5, y + rad, 1);
   glEnd();
 }
 
