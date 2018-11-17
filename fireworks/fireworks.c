@@ -163,7 +163,7 @@ static void key_callback(GLFWwindow *window,
                          int scancode,
                          int action,
                          int mods) {
-  if (key == GLFW_KEY_ESCAPE) {
+  if (key == GLFW_KEY_SPACE) {
     add_rocket(theholder);
   }
 }
