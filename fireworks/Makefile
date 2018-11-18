@@ -2,7 +2,7 @@ UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S), Linux)
     comp := gcc
-    flags := -L /usr/local/lib/ -lGLEW -lglfw3 -lGL -lX11 -lXi -lXrandr -lXxf86vm -lXinerama -lXcursor -lrt -lm -pthread -ldl
+    flags := -L /usr/local/lib/ -lGLEW -lglfw -lGL -lX11 -lXi -lXrandr -lXxf86vm -lXinerama -lXcursor -lrt -lm -pthread -ldl
 endif
 
 ifeq ($(UNAME_S), Darwin)
@@ -21,4 +21,4 @@ run:
 	./a.out
 
 mem:
-	valgrind --leak-check=yes a.out
+	valgrind --leak-check=yes ./a.out
