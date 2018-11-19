@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
 float gravity = 0.00074f;
 int explode_time = 1200;
@@ -177,6 +178,9 @@ int main(int argc, char** argv) {
   struct holder *it = NULL;
   struct rocket *therocket;
 
+  double previousTime = glfwGetTime();
+  int frameCount = 0;
+
   /* Initialize the library */
   if ( !glfwInit() ) {
      return -1;
@@ -206,8 +210,24 @@ int main(int argc, char** argv) {
   while (!glfwWindowShouldClose(window)) {
     /* Render here */
     int width, height;
+
+
+    // Measure speed
+    double currentTime = glfwGetTime();
+    frameCount++;
+    // If a second has passed.
+    if ( currentTime - previousTime >= 1.0 )
+    {
+        // Display the frame count here any way you want.
+        printf("FPS: %d\n", frameCount);
+
+        frameCount = 0;
+        previousTime = currentTime;
+    }
+
+    /* usleep(10000); */
     glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
+    /* glViewport(0, 0, width, height); */
     glClear(GL_COLOR_BUFFER_BIT);
     it = theholder;
     while(it != NULL) {
@@ -322,6 +342,8 @@ int main(int argc, char** argv) {
       glfwSetWindowPos(window, xpos+1, ypos);
       glfwSetWindowPos(window, xpos, ypos);
     }
+
+    currentTime = glfwGetTime();
   }
 
   glfwTerminate();
