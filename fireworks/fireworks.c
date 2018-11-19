@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
 
   /* Make the window's context current */
   glfwMakeContextCurrent(window);
-  glfwSwapInterval(1);
+  glfwSwapInterval(0); // 1
   glfwSetKeyCallback(window, key_callback);
   /* Loop until the user closes the window */
 
@@ -343,7 +343,7 @@ int main(int argc, char** argv) {
       glfwSetWindowPos(window, xpos, ypos);
     }
 
-    currentTime = glfwGetTime();
+    /* usleep(6800); */
   }
 
   glfwTerminate();
