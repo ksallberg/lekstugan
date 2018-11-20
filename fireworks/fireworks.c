@@ -1,6 +1,6 @@
 #define GLFW_INCLUDE_GLCOREARB
 #define GLFW_INCLUDE_GLU
-#define TRAIL 22
+#define TRAIL 15
 
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
@@ -8,7 +8,8 @@
 #include <unistd.h>
 
 float gravity = 0.00074f;
-int explode_time = 1200;
+int explode_time = 320;
+int remove_time = 2000;
 
 struct holder {
   struct rocket *raket;
@@ -62,7 +63,7 @@ struct rocket *new_rocket() {
   raket->g = float_rand(0.0f, 1.0f);
   raket->b = float_rand(0.0f, 1.0f);
   raket->myself = malloc(sizeof *point);
-  raket->spread = float_rand(0.00008f, 0.0007f);
+  raket->spread = float_rand(0.0003f, 0.0035f);
   for(j = 0; j < TRAIL; j ++) {
     raket->myself->prevx[j] = -100.0f;
     raket->myself->prevy[j] = -100.0f;
@@ -77,7 +78,7 @@ struct rocket *new_rocket() {
     raket->subrockets[i] = malloc(sizeof *point);
     raket->subrockets[i]->x = 0.0f;
     raket->subrockets[i]->y = 0.0f;
-    raket->subrockets[i]->speed = (1+i)/(float)100000;
+    /* raket->subrockets[i]->speed = (1+i)/(float)100000; */
 
     if(!normal) {
       raket->subrockets[i]->angle = to_radian(36 * i + rand());
@@ -131,10 +132,10 @@ void add_rocket(struct holder *hold) {
 /* Draw a little diamond at a certain coordinate */
 void draw_spot(struct rocket *rock,
                float extra_x, float extra_y, float alpha) {
-  float rad = 0.0035f;
+  float rad = 0.0055f;
   float x = rock->x + extra_x;
   float y = rock->y + extra_y;
-  float alpha2 = alpha - (((float) rock->lifetime - explode_time*2)/ 3000);
+  float alpha2 = alpha - (((float) rock->lifetime - explode_time/40)/ 700);
   glBegin(GL_TRIANGLES);
   glColor4f(rock->r, rock->g, rock->b, alpha2);
   glVertex3f(x, y-rad, 1);
@@ -148,7 +149,7 @@ void draw_spot(struct rocket *rock,
 
 /* Draw a little diamond at a certain coordinate */
 void draw_pt(struct point *pt, float alpha) {
-  float rad = 0.003f;
+  float rad = 0.0055f;
   float x = pt->x;
   float y = pt->y;
   glBegin(GL_TRIANGLES);
@@ -225,7 +226,7 @@ int main(int argc, char** argv) {
         previousTime = currentTime;
     }
 
-    /* usleep(10000); */
+    usleep(16000);
     glfwGetFramebufferSize(window, &width, &height);
     /* glViewport(0, 0, width, height); */
     glClear(GL_COLOR_BUFFER_BIT);
@@ -233,7 +234,7 @@ int main(int argc, char** argv) {
     while(it != NULL) {
       therocket = it->raket;
       if(therocket != NULL) {
-        if(therocket->lifetime >= 14000) {
+        if(therocket->lifetime >= remove_time) {
           struct holder *temp = theholder->next;
           /* specialfall, om det bara finns en holder,
              ska vi inte ta bort den for det sabbar
@@ -283,7 +284,7 @@ int main(int argc, char** argv) {
                         (therocket->subrockets[i])->prevy[j],
                         (float) j / 5.0f);
             }
-            new_y -= gravity * time_since_explo * 0.00009;
+            new_y -= gravity * time_since_explo * 0.0009;
             (therocket->subrockets[i])->x = new_x;
             (therocket->subrockets[i])->y = new_y;
             draw_spot(therocket, new_x, new_y, 1.0f);
@@ -294,9 +295,10 @@ int main(int argc, char** argv) {
           float old_x = therocket->x;
           float old_y = therocket->y;
           float angle = therocket->angle;
-          float sideways_mod = 0.0003 * therocket->lifetime/1000;
+          float sideways_mod = 0.003 * therocket->lifetime/300;
           float new_x = old_x + (float) cos(angle) * sideways_mod;
-          float vertical_mod = (float) (2600-therocket->lifetime*2.4)/1000000;
+          float vertical_mod =
+            (float) (explode_time-therocket->lifetime*1.2)/30000;
           float new_y = old_y + (float) sin(angle) * vertical_mod;
           int j = 0;
           therocket->x = new_x;
@@ -321,8 +323,7 @@ int main(int argc, char** argv) {
           for(int j=0; j < TRAIL; j++) {
             pp.x = (therocket->myself)->prevx[j];
             pp.y = (therocket->myself)->prevy[j];
-            draw_pt(&pp,
-                      (float) j / 25.0f);
+            draw_pt(&pp, (float) j / 55.0f);
           }
 
           draw_spot(therocket, 0, 0, 1.0f);
