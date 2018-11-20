@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
 
   /* Make the window's context current */
   glfwMakeContextCurrent(window);
-  glfwSwapInterval(0); // 1
+  glfwSwapInterval(1); // 1
   glfwSetKeyCallback(window, key_callback);
   /* Loop until the user closes the window */
 
