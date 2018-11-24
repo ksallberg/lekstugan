@@ -21,4 +21,4 @@ run:
 	./a.out
 
 mem:
-	valgrind --leak-check=yes ./a.out
+	valgrind -v --log-file="mem.txt" --leak-check=yes ./a.out

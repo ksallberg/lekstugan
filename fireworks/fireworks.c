@@ -10,6 +10,7 @@
 float gravity = 0.00074f;
 int explode_time = 320;
 int remove_time = 2000;
+int run = 1;
 
 struct holder {
   struct rocket *raket;
@@ -167,6 +168,8 @@ static void key_callback(GLFWwindow *window,
                          int mods) {
   if (key == GLFW_KEY_SPACE) {
     add_rocket(theholder);
+  } else if (key == GLFW_KEY_ESCAPE) {
+    run = 0;
   }
 }
 
@@ -208,7 +211,7 @@ int main(int argc, char** argv) {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  while (!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(window) && run == 1) {
     /* Render here */
     int width, height;
 
