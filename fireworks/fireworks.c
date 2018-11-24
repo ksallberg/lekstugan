@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
 
   /* Make the window's context current */
   glfwMakeContextCurrent(window);
-  glfwSwapInterval(1); // 1
+  glfwSwapInterval(1);
   glfwSetKeyCallback(window, key_callback);
   /* Loop until the user closes the window */
 
@@ -226,7 +226,10 @@ int main(int argc, char** argv) {
         previousTime = currentTime;
     }
 
-    usleep(16000);
+    #ifdef __APPLE__
+      usleep(14000);
+    #endif
+
     glfwGetFramebufferSize(window, &width, &height);
     /* glViewport(0, 0, width, height); */
     glClear(GL_COLOR_BUFFER_BIT);
@@ -343,8 +346,6 @@ int main(int argc, char** argv) {
       glfwSetWindowPos(window, xpos+1, ypos);
       glfwSetWindowPos(window, xpos, ypos);
     }
-
-    /* usleep(6800); */
   }
 
   glfwTerminate();
