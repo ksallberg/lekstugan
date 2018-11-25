@@ -3,6 +3,7 @@ local vec = require("vector-light")
 local onescore = 0
 local twoscore = 0
 local stepmode = true
+local stepcount = 0
 -- Load some default values for our rectangle.
 
 function love.load()
@@ -66,7 +67,12 @@ end
 function love.update(dt)
 
     if stepmode == true and not love.keyboard.isDown("space") then
-       return
+       if math.mod(stepcount, 15.0) == 0 then
+          stepcount = stepcount + 1
+       else
+          stepcount = stepcount + 1
+          return
+       end
     end
     if love.keyboard.isDown("a") then
         player.x = player.x - player.speed
