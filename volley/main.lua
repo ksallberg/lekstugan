@@ -2,7 +2,7 @@ local vec = require("vector-light")
 
 local onescore = 0
 local twoscore = 0
-local stepmode = false
+local stepmode = true
 -- Load some default values for our rectangle.
 
 function love.load()
@@ -65,12 +65,8 @@ end
 -- Increase the size of the rectangle every frame.
 function love.update(dt)
 
-    if stepmode == true then
-       if love.keyboard.isDown("space") then
-          
-       else
-          return
-       end
+    if stepmode == true and not love.keyboard.isDown("space") then
+       return
     end
     if love.keyboard.isDown("a") then
         player.x = player.x - player.speed
