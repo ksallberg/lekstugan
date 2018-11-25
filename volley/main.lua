@@ -199,10 +199,10 @@ function love.draw()
                             net.height)
     -- love.graphics.print("Hello World"..tostring(w), 400, 300)
     love.graphics.setColor(player.color.r, player.color.g, player.color.b)
-    love.graphics.arc("fill", player.x, player.y, player.radius, 0,  -3.14, 8)
+    love.graphics.arc("fill", player.x, player.y, player.radius, 0,  -3.14, 18)
     love.graphics.setColor(player2.color.r, player2.color.g, player2.color.b)
     love.graphics.arc("fill", player2.x, player2.y,
-                      player2.radius, 0, -3.14, 8)
+                      player2.radius, 0, -3.14, 18)
 
     love.graphics.setColor(ball.color.r, ball.color.g, ball.color.b)
     love.graphics.circle("fill", ball.x, ball.y, ball.radius)
@@ -212,5 +212,5 @@ function love.draw()
     -- debug vector
     love.graphics.line(ball.x, ball.y,
                        ball.x + ball.xVelocity/10,
-                       ball.y + ball.yVelocity/10)
+                       ball.y - ball.yVelocity/10)
 end
