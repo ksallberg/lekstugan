@@ -143,45 +143,8 @@ function love.update(dt)
 
    if coll1 then
       do_coll(player, dt)
-      -- connx = player.x - ball.x
-      -- conny = player.y - ball.y
-
-      -- normconx, normcony = vec.normalize(connx, conny)
-
-      -- perpx,perpy = vec.perpendicular(connx, conny)
-      -- velx,vely = vec.mirror(-connx, -conny,
-      --                        perpx, perpy)
-      -- newvelx = velx
-      -- newvely = vely
-
-      -- oldvelx = ball.xVelocity
-      -- oldvely = ball.yVelocity
-
-      -- ball.xVelocity = velx * 4
-      -- ball.yVelocity = vely * 4
-
-
-      -- ball.y = player.y - normcony * (ball.radius + player.radius + 1 + player.currentVelocity * dt)
-      -- ball.x = player.x - normconx * (ball.radius + player.radius + 1 + player.currentVelocity * dt)
-      -- ball.color.r = 1
-      -- ball.color.g = 1
-      -- ball.color.b = 0
    elseif coll2 then
       do_coll(player2, dt)
-      -- elseif coll2 then
-      --     connx = ball.x - player2.x
-      --     conny = ball.y - player2.y
-      --     normconx, normcony = vec.normalize(connx, conny)
-      --     perpx,perpy = vec.perpendicular(normconx, normcony)
-      --     velx,vely = vec.mirror(-ball.xVelocity, -ball.yVelocity,
-      --                            perpx, perpy)
-      --     ball.xVelocity = velx
-      --     ball.yVelocity = vely
-      --     -- ball.x = player2.x + normconx * (ball.radius + player2.radius)
-      --     ball.y = player2.y - normcony * (ball.radius + player2.radius)
-      --     ball.color.r = 1
-      --     ball.color.g = 0
-      --     ball.color.b = 0
    else
       ball.color.r = 1
       ball.color.g = 1
