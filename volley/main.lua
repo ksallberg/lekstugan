@@ -172,6 +172,15 @@ function love.update(dt)
          twoscore = twoscore + 1
       end
    end
+
+   netx1 = court.width * 0.5 - net.thickness * 0.5
+   netx2 = court.width * 0.5 + net.thickness * 0.5
+   if ball.x + ball.radius >= netx1 and
+      ball.x - ball.radius <= netx2 and
+      ball.y > court.height - net.height then
+      ball.xVelocity = -ball.xVelocity
+   end
+
    ball.yVelocity = ball.yVelocity - court.gravity * dt
 end
 
