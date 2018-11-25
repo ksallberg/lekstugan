@@ -142,29 +142,32 @@ function love.update(dt)
                               (player2.radius + ball.radius))
 
    if coll1 then
-      connx = player.x - ball.x
-      conny = player.y - ball.y
+      do_coll(player, dt)
+      -- connx = player.x - ball.x
+      -- conny = player.y - ball.y
 
-      normconx, normcony = vec.normalize(connx, conny)
+      -- normconx, normcony = vec.normalize(connx, conny)
 
-      perpx,perpy = vec.perpendicular(connx, conny)
-      velx,vely = vec.mirror(-connx, -conny,
-                             perpx, perpy)
-      newvelx = velx
-      newvely = vely
+      -- perpx,perpy = vec.perpendicular(connx, conny)
+      -- velx,vely = vec.mirror(-connx, -conny,
+      --                        perpx, perpy)
+      -- newvelx = velx
+      -- newvely = vely
 
-      oldvelx = ball.xVelocity
-      oldvely = ball.yVelocity
+      -- oldvelx = ball.xVelocity
+      -- oldvely = ball.yVelocity
 
-      ball.xVelocity = velx * 4
-      ball.yVelocity = vely * 4
+      -- ball.xVelocity = velx * 4
+      -- ball.yVelocity = vely * 4
 
 
-      ball.y = player.y - normcony * (ball.radius + player.radius + 1 + player.currentVelocity * dt)
-      ball.x = player.x - normconx * (ball.radius + player.radius + 1 + player.currentVelocity * dt)
-      ball.color.r = 1
-      ball.color.g = 1
-      ball.color.b = 0
+      -- ball.y = player.y - normcony * (ball.radius + player.radius + 1 + player.currentVelocity * dt)
+      -- ball.x = player.x - normconx * (ball.radius + player.radius + 1 + player.currentVelocity * dt)
+      -- ball.color.r = 1
+      -- ball.color.g = 1
+      -- ball.color.b = 0
+   elseif coll2 then
+      do_coll(player2, dt)
       -- elseif coll2 then
       --     connx = ball.x - player2.x
       --     conny = ball.y - player2.y
@@ -207,6 +210,32 @@ function love.update(dt)
       end
    end
    ball.yVelocity = ball.yVelocity - court.gravity * dt
+end
+
+function do_coll(play, dt)
+   connx = play.x - ball.x
+   conny = play.y - ball.y
+
+   normconx, normcony = vec.normalize(connx, conny)
+
+   perpx,perpy = vec.perpendicular(connx, conny)
+   velx,vely = vec.mirror(-connx, -conny,
+                          perpx, perpy)
+   newvelx = velx
+   newvely = vely
+
+   oldvelx = ball.xVelocity
+   oldvely = ball.yVelocity
+
+   ball.xVelocity = velx * 4
+   ball.yVelocity = vely * 4
+
+
+   ball.y = play.y - normcony * (ball.radius + play.radius + 1 + play.currentVelocity * dt)
+   ball.x = play.x - normconx * (ball.radius + play.radius + 1 + play.currentVelocity * dt)
+   ball.color.r = 1
+   ball.color.g = 1
+   ball.color.b = 0
 end
 
 -- Draw a coloured rectangle.
