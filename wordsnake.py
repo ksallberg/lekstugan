@@ -1,3 +1,5 @@
+# Algoritm from zhengyang zhao: https://github.com/zhezha/Pokemons
+
 max_chain = []
 pokemons = ["audino","bagon","baltoy","banette","bidoof","braviary","bronzor",
             "carracosta","charmeleon","cresselia","croagunk","darmanitan",
@@ -16,7 +18,7 @@ def dfs(start_node):
     cur_chain = []
     stack = []
     stack.insert(0, start_node)
-    while stack != []:
+    while len(stack) > 0:
         node = stack[0]
         if node in cur_chain:
             if cur_chain[-1] == node:
