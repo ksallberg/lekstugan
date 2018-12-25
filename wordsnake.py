@@ -26,8 +26,8 @@ def dfs(start_node):
                 stack.pop(0)
         else:
             cur_chain.append(node)
-            if node.edges_out != []:
-                for out_node in node.edges_out:
+            if nodes[node].edges_out != []:
+                for out_node in nodes[node].edges_out:
                     stack.insert(0, out_node)
             else:
                 reset_max(cur_chain)
@@ -40,33 +40,43 @@ def reset_max(new_chain):
             max_chain.pop()
         max_chain.extend(new_chain)
 
+def id_for(name):
+    for node in nodes:
+        if node.word == name:
+            return node.id
+
 class Node:
+    id = 0
     word = ""
     edges_in = []
     edges_out = []
 
-nodes = {}
+nodes = []
+gid = 0
 
 for pokemon in pokemons:
     pkmn = Node()
+    pkmn.id = gid
     pkmn.word = pokemon
-    nodes[pokemon] = pkmn
+    nodes.append(pkmn)
+    gid = gid+1
 
+gid = 0
 for pokemon in pokemons:
     first_char = pokemon[0]
     last_char = pokemon[-1]
     # get all nodes pointing at me
-    nodes[pokemon].edges_in = [nodes[x] for x in pokemons
-                               if x[-1] == first_char and x != pokemon]
-    nodes[pokemon].edges_out = [nodes[x] for x in pokemons
-                                if x[0] == last_char and x != pokemon]
+    nodes[gid].edges_in = [id_for(x) for x in pokemons
+                           if x[-1] == first_char and x != pokemon]
+    nodes[gid].edges_out = [id_for(x) for x in pokemons
+                            if x[0] == last_char and x != pokemon]
+    gid = gid+1
 
-# start_nodes = [nodes[x] for x in nodes if nodes[x].edges_in == []]
-start_nodes = [nodes['machamp']]
+start_nodes = [x.id for x in nodes if x.edges_in == []]
+# start_nodes = [id_for('machamp')]
 
 for start_node in start_nodes:
-    print "startnode: ", start_node.word
     dfs(start_node)
 
 for x in max_chain:
-    print "    node: ", x.word
+    print nodes[x].word
