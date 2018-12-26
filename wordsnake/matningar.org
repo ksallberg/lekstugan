@@ -1,0 +1,132 @@
+* Problemet ordorm
+
+Det här problemet fick jag i min första tenta i datavetenskap
+på GU. Då skulle man lösa problemet med brute-force i Haskell.
+Det gick dåligt sedan dess har jag haft det som mitt julproblem.
+
+Man ska: från ett givet antal ord, hitta den längsta följden som
+går att konstruera, där sista bokstaven i ord *x* är första bokstaven
+i ord *y*.
+
+Exempel:
+
+#+BEGIN_SRC
+apas,oxe,myra,dyra,fyra,syra
+#+END_SRC
+
+Med orden över, är den längsta ordormen som går att konstruera:
+
+#+BEGIN_SRC
+fyra,apas,syra
+#+END_SRC
+
+* Lösningar
+
+** Brute force
+
+Först testade jag att räkna ut alla möjliga ord-ormar med ruby.
+sen provade jag att göra det i Haskell, men den koden blev
+lång och krånglig och finns inte kvar (RIP).
+
+*** Ruby
+
+#+BEGIN_SRC
+
+#+END_SRC
+
+*** Haskell
+
+#+BEGIN_SRC
+["machamp","pinsir","rufflet","trapinch","heatmor","relicanth","haxorus",
+ "starly","yamask","kricketune","exeggcute","emboar","registeel","loudred",
+ "darmanitan","nosepp","petilil","landorus","seaking","girafarig","gabite",
+ "emolga","audino"]
+
+real    7m14.896s
+user    7m4.809s
+sys     0m3.955s
+#+END_SRC
+
+** Grafproblem
+
+Samma problem kom upp igen i DICE kodtävling, april 2015.
+Då löste vi uppgiften med brute force i Haskell. Men den
+här gången var indatat stort och jag minns inte om vi hann
+få ut rätt ordorm.
+
+Jag frågade Zhengyang i min klass på KTH om det inte går
+att lösa snabbt med Constraint Programming, men han såg
+att det snarare kan lösas genom att bygga upp en directed
+acyclic graph (DAG). Han gjorde ett program som räknar ut
+rätt ordorm.
+
+*** Python
+
+Julen 2018 kände jag att jag ville testa att själv köra
+programmet, men eftersom Zhangyang skrev det i C# blev det
+för krångligt. Det fick bli en implementation i python.
+
+#+BEGIN_SRC
+machamp
+pinsir
+rufflet
+trapinch
+heatmor
+relicanth
+haxorus
+starly
+yamask
+kricketune
+exeggcute
+emboar
+registeel
+loudred
+darmanitan
+nosepp
+petilil
+landorus
+seaking
+girafarig
+gabite
+emolga
+audino
+
+real    0m8.280s
+user    0m8.140s
+sys     0m0.078s
+#+END_SRC
+
+*** C
+
+Eftersom jag övar på C, fick det bli en version i C dagen efter.
+Exakt samma algoritm som i python (och C#).
+
+#+BEGIN_SRC
+machamp
+pinsir
+rufflet
+trapinch
+heatmor
+relicanth
+haxorus
+starly
+yamask
+kricketune
+exeggcute
+emboar
+registeel
+loudred
+darmanitan
+nosepp
+petilil
+landorus
+seaking
+girafarig
+gabite
+emolga
+audino
+
+real    0m0.791s
+user    0m0.769s
+sys     0m0.011s
+#+END_SRC
