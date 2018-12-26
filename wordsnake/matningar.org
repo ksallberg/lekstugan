@@ -30,11 +30,14 @@ lång och krånglig och finns inte kvar (RIP).
 
 *** Ruby
 
-#+BEGIN_SRC
-
-#+END_SRC
+Koden fungerar inte längre och den är skriven som one-liners.
 
 *** Haskell
+
+Samma problem kom upp igen i DICE kodtävling, april 2015.
+Då löste vi uppgiften med brute force i Haskell. Men den
+här gången var indatat stort och jag minns inte om vi hann
+få ut rätt ordorm.
 
 #+BEGIN_SRC
 ["machamp","pinsir","rufflet","trapinch","heatmor","relicanth","haxorus",
@@ -48,11 +51,6 @@ sys     0m3.955s
 #+END_SRC
 
 ** Grafproblem
-
-Samma problem kom upp igen i DICE kodtävling, april 2015.
-Då löste vi uppgiften med brute force i Haskell. Men den
-här gången var indatat stort och jag minns inte om vi hann
-få ut rätt ordorm.
 
 Jag frågade Zhengyang i min klass på KTH om det inte går
 att lösa snabbt med Constraint Programming, men han såg
