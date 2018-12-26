@@ -31,6 +31,7 @@ lång och krånglig och finns inte kvar (RIP).
 *** Ruby
 
 Koden fungerar inte längre och den är skriven som one-liners.
+Svårt att förstå vad den en gång var tänkt att göra.
 
 *** Haskell
 
