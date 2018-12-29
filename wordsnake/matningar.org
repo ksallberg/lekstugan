@@ -129,3 +129,39 @@ real    0m0.791s
 user    0m0.769s
 sys     0m0.011s
 #+END_SRC
+
+*** C++
+
+Varför inte... Enklare att förstå koden p.g.a. datastrukturer
+Men inte lika snabbt som C. Kanske för att det inte är bra skriven
+C++, kanske för att den lägger saker på heapen?
+
+#+BEGIN_SRC
+machamp
+pinsir
+rufflet
+trapinch
+heatmor
+relicanth
+haxorus
+starly
+yamask
+kricketune
+exeggcute
+emboar
+registeel
+loudred
+darmanitan
+nosepp
+petilil
+landorus
+seaking
+girafarig
+gabite
+emolga
+audino
+
+real    0m3.278s
+user    0m3.254s
+sys     0m0.014s
+#+END_SRC
