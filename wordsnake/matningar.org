@@ -165,3 +165,37 @@ real    0m3.278s
 user    0m3.254s
 sys     0m0.014s
 #+END_SRC
+
+*** Java
+
+Java snabbare än C. Hmm.
+
+#+BEGIN_SRC
+machamp
+pinsir
+rufflet
+trapinch
+heatmor
+relicanth
+haxorus
+starly
+yamask
+kricketune
+exeggcute
+emboar
+registeel
+loudred
+darmanitan
+nosepp
+petilil
+landorus
+seaking
+girafarig
+gabite
+emolga
+audino
+
+real    0m0.632s
+user    0m0.780s
+sys     0m0.057s
+#+END_SRC
