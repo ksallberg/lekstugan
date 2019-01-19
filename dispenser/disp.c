@@ -17,40 +17,62 @@ Servo myservo;
 int pos = 0;
 int servopin = 2;
 unsigned long delaytime=250;
-int i=0;
+int counter=50;
+int state = 0;
+
 void setup() {
 
   lc.shutdown(0,false);
   lc.setIntensity(1,80);
   lc.clearDisplay(0);
+  myservo.write(180);
   myservo.attach(servopin);
 }
 
 void loop() {
 
-    if(i == 8) {
-      i = 0;
-    }
+    int digit = counter;
+    int dig1 = digit % 10;
+    digit /= 10;
+    int dig2 = digit % 10;
     lc.clearDisplay(0);
 
-    lc.setDigit(0,3,i,false);
-    lc.setDigit(0,2,i,false);
-    lc.setDigit(0,1,i,false);
-    lc.setDigit(0,0,i,false);
+    lc.setDigit(0,7,0,false);
+    lc.setDigit(0,6,0,false);
+    lc.setDigit(0,5,0,false);
+    lc.setDigit(0,4,0,false);
 
-    lc.setDigit(0,4,i+1,false);
-    lc.setDigit(0,5,i+1,false);
-    lc.setDigit(0,6,i+1,false);
-    lc.setDigit(0,7,i+1,false);
+    lc.setDigit(0,3,0,false);
+    lc.setDigit(0,2,0,false);
+    lc.setDigit(0,1,dig2,false);
+    lc.setDigit(0,0,dig1,false);
 
-    i++;
-    if(i==3) {
-       pos=0;
-       myservo.write(pos);
-    }
-    if(i==7) {
-       pos=0;
-       myservo.write(pos);
+    // up
+    if(state == 0) {
+      if(counter > 0) {
+        counter --;
+      } else {
+        pos=100;
+        myservo.attach(servopin);
+        myservo.write(pos);
+        delay(500);
+        myservo.detach();
+        state = 1;
+        counter = 20;
+      }
+    // down
+    } else if(state ==1) {
+      if(counter > 0) {
+        counter --;
+      } else {
+        pos=180;
+        myservo.attach(servopin);
+        myservo.write(pos);
+        delay(500);
+        myservo.detach();
+        state = 0;
+        counter = 50;
+      }
     }
     delay(delaytime);
 }
