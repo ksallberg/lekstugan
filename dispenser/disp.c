@@ -14,10 +14,11 @@
 LedControl lc=LedControl(12,11,10,1);
 
 Servo myservo;
+int high = 28800;
 int pos = 0;
 int servopin = 2;
-unsigned long delaytime=250;
-int counter=50;
+unsigned long delaytime=1000;
+int counter=high;
 int state = 0;
 
 void setup() {
@@ -35,15 +36,22 @@ void loop() {
     int dig1 = digit % 10;
     digit /= 10;
     int dig2 = digit % 10;
+    digit /= 10;
+    int dig3 = digit % 10;
+    digit /= 10;
+    int dig4 = digit % 10;
+    digit /= 10;
+    int dig5 = digit % 10;
+
     lc.clearDisplay(0);
 
-    lc.setDigit(0,7,0,false);
-    lc.setDigit(0,6,0,false);
-    lc.setDigit(0,5,0,false);
-    lc.setDigit(0,4,0,false);
+    //lc.setDigit(0,7,0,false);
+    //lc.setDigit(0,6,0,false);
+    //lc.setDigit(0,5,0,false);
+    lc.setDigit(0,4,dig5,false);
 
-    lc.setDigit(0,3,0,false);
-    lc.setDigit(0,2,0,false);
+    lc.setDigit(0,3,dig4,false);
+    lc.setDigit(0,2,dig3,false);
     lc.setDigit(0,1,dig2,false);
     lc.setDigit(0,0,dig1,false);
 
@@ -71,7 +79,7 @@ void loop() {
         delay(500);
         myservo.detach();
         state = 0;
-        counter = 50;
+        counter = high;
       }
     }
     delay(delaytime);
