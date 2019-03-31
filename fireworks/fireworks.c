@@ -229,10 +229,6 @@ int main(int argc, char** argv) {
         previousTime = currentTime;
     }
 
-    #ifdef __APPLE__
-      usleep(14000);
-    #endif
-
     glfwGetFramebufferSize(window, &width, &height);
     /* glViewport(0, 0, width, height); */
     glClear(GL_COLOR_BUFFER_BIT);
@@ -343,12 +339,6 @@ int main(int argc, char** argv) {
 
     /* Poll for and process events */
     glfwPollEvents();
-
-    if(xpos == -1) {
-      glfwGetWindowPos(window, &xpos, &ypos);
-      glfwSetWindowPos(window, xpos+1, ypos);
-      glfwSetWindowPos(window, xpos, ypos);
-    }
   }
 
   glfwTerminate();
