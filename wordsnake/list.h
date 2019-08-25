@@ -1,122 +1,42 @@
-//
-// list.h
-//
-// Copyright (c) 2010 TJ Holowaychuk <tj@vision-media.ca>
-//
+#ifndef _LIST_INCLUDED
+#define _LIST_INCLUDED
 
-#ifndef LIST_H
-#define LIST_H
+typedef struct list List;
+typedef void *Item;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct l_element {
+  struct l_element *next;
+  struct l_element *prev;
+  void *value;
+};
 
-#include <stdlib.h>
-
-// Library version
-
-#define LIST_VERSION "0.0.5"
-
-// Memory management macros
-
-#ifndef LIST_MALLOC
-#define LIST_MALLOC malloc
-#endif
-
-#ifndef LIST_FREE
-#define LIST_FREE free
-#endif
+struct list {
+  struct l_element *head;
+  struct l_element *tail;
+  int size;
+};
 
 /*
- * list_t iterator direction.
+ * create a List that holds Items
+ * returns NULL if the create call failed (malloc failure)
  */
-
-typedef enum {
-    LIST_HEAD
-  , LIST_TAIL
-} list_direction_t;
-
+List *l_create(void);
 /*
- * list_t node struct.
+ * remove one, add one
  */
-
-typedef struct list_node {
-  struct list_node *prev;
-  struct list_node *next;
-  void *val;
-} list_node_t;
-
+int l_shift(List *q, Item i);
 /*
- * list_t struct.
+ * add Item to the List
+ * return 1/0 if successful/not-successful
  */
-
-typedef struct {
-  list_node_t *head;
-  list_node_t *tail;
-  unsigned int len;
-  void (*free)(void *val);
-  int (*match)(void *a, void *b);
-} list_t;
-
+int l_add(List *q, Item i);
 /*
- * list_t iterator struct.
+ * remove next Item from list; returns NULL if list is empty
  */
+Item l_remove(List *q);
 
-typedef struct {
-  list_node_t *next;
-  list_direction_t direction;
-} list_iterator_t;
+Item l_get_last(List *q);
 
-// Node prototypes.
+int l_size(List *q);
 
-list_node_t *
-list_node_new(void *val);
-
-// list_t prototypes.
-
-list_t *
-list_new();
-
-list_node_t *
-list_rpush(list_t *self, list_node_t *node);
-
-list_node_t *
-list_lpush(list_t *self, list_node_t *node);
-
-list_node_t *
-list_find(list_t *self, void *val);
-
-list_node_t *
-list_at(list_t *self, int index);
-
-list_node_t *
-list_rpop(list_t *self);
-
-list_node_t *
-list_lpop(list_t *self);
-
-void
-list_remove(list_t *self, list_node_t *node);
-
-void
-list_destroy(list_t *self);
-
-// list_t iterator prototypes.
-
-list_iterator_t *
-list_iterator_new(list_t *list, list_direction_t direction);
-
-list_iterator_t *
-list_iterator_new_from_node(list_node_t *node, list_direction_t direction);
-
-list_node_t *
-list_iterator_next(list_iterator_t *self);
-
-void
-list_iterator_destroy(list_iterator_t *self);
-
-#ifdef __cplusplus
-}
 #endif
-
-#endif /* LIST_H */

@@ -25,8 +25,8 @@ extern int cur_max_len = 0;
 
 struct Node {
   int id;
-  list_t *edges_in;
-  list_t *edges_out;
+  List *edges_in;
+  List *edges_out;
 };
 
 void remove_arr(int look_for, int chain[CHEAT]) {
@@ -89,11 +89,11 @@ void dfs(int start_node, struct Node nodes[BUFSIZE], int max_chain[CHEAT]) {
     } else {
       cur_chain[cur_chain_last] = node;
       cur_chain_last ++;
-      int edges_len = nodes[node].edges_out->len;
-      list_node_t *cur = nodes[node].edges_out->head;
+      int edges_len = l_size(nodes[node].edges_out);
+      struct l_element *cur = nodes[node].edges_out->head;
       if(edges_len>0) {
         while(cur != NULL) {
-          stack[stackpt] = cur->val;
+          stack[stackpt] = cur->value;
           cur=cur->next;
           stackpt++;
         }
@@ -135,8 +135,8 @@ int main() {
   for(i = 0; i < BUFSIZE; i++) {
     /* edges_out_counter=0; */
     nodes[i].id = i;
-    nodes[i].edges_in = list_new();
-    nodes[i].edges_out = list_new();
+    nodes[i].edges_in = l_create();
+    nodes[i].edges_out = l_create();
 
     first_char = pokemons[i][0];
     last_char = pokemons[i][strlen(pokemons[i])-1];
@@ -146,12 +146,12 @@ int main() {
 
       // add nodes pointing at me
       if(first_char == comp && i != j) {
-        list_rpush(nodes[i].edges_in, list_node_new(j));
+        l_add(nodes[i].edges_in, j);
       }
 
       // add nodes im pointing at
       if(last_char == pokemons[j][0] && i != j) {
-        list_rpush(nodes[i].edges_out, list_node_new(j));
+        l_add(nodes[i].edges_out, j);
       }
     }
     nodes[i].id = i;
@@ -159,15 +159,9 @@ int main() {
 
   // populate start_nodes
   for(i = 0; i < BUFSIZE; i++) {
-    if(nodes[i].edges_in->len == 0) {
+    if(l_size(nodes[i].edges_in) == 0) {
       dfs(i, nodes, max_chain);
     }
-  }
-
-  // clean up
-  for(i = 0; i < BUFSIZE; i++) {
-    list_destroy(nodes[i].edges_in);
-    list_destroy(nodes[i].edges_out);
   }
 
   for(i=0; i < CHEAT; i++) {
