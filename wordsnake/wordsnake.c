@@ -29,7 +29,7 @@ struct Node {
   List *edges_out;
 };
 
-void remove_arr(int look_for, int chain[CHEAT]) {
+void remove_arr(int look_for, int *chain) {
   int *rem = chain;
   int *replace;
   while(*rem != look_for) {
@@ -45,7 +45,7 @@ void remove_arr(int look_for, int chain[CHEAT]) {
   *rem = -1;
 }
 
-void reset_max(int max_chain[CHEAT], int new_max[CHEAT], int newlen) {
+void reset_max(int *max_chain, int *new_max, int newlen) {
   if(newlen > cur_max_len) {
     cur_max_len = newlen;
     for(int i = 0; i < CHEAT; i++) {
@@ -58,7 +58,7 @@ void reset_max(int max_chain[CHEAT], int new_max[CHEAT], int newlen) {
   }
 }
 
-void dfs(int start_node, struct Node nodes[BUFSIZE], int max_chain[CHEAT]) {
+void dfs(int start_node, struct Node nodes[BUFSIZE], int *max_chain) {
   int stack[BUFSIZE];
   int node;
   int cur_chain[CHEAT];
@@ -110,7 +110,7 @@ void dfs(int start_node, struct Node nodes[BUFSIZE], int max_chain[CHEAT]) {
   }
 }
 
-int in_cur(int look_for, int chain[CHEAT]) {
+int in_cur(int look_for, int *chain) {
   for(int i=0; i < CHEAT; i++) {
     if(chain[i] == look_for) {
       return 1;
