@@ -19,6 +19,7 @@ const char *pokemons[] = {
   "wingull","yamask"};
 
 #define BUFSIZE 70
+#define CHEAT 24
 
 extern int cur_max_len = 0;
 
@@ -28,7 +29,7 @@ struct Node {
   List *edges_out;
 };
 
-void remove_arr(int look_for, int chain[BUFSIZE]) {
+void remove_arr(int look_for, int chain[CHEAT]) {
   int *rem = chain;
   int *replace;
   while(*rem != look_for) {
@@ -44,10 +45,10 @@ void remove_arr(int look_for, int chain[BUFSIZE]) {
   *rem = -1;
 }
 
-void reset_max(int max_chain[BUFSIZE], int new_max[BUFSIZE], int newlen) {
+void reset_max(int max_chain[CHEAT], int new_max[CHEAT], int newlen) {
   if(newlen > cur_max_len) {
     cur_max_len = newlen;
-    for(int i = 0; i < BUFSIZE; i++) {
+    for(int i = 0; i < CHEAT; i++) {
       if(new_max[i] == -1) {
         max_chain[i] = -1;
         break;
@@ -57,14 +58,14 @@ void reset_max(int max_chain[BUFSIZE], int new_max[BUFSIZE], int newlen) {
   }
 }
 
-void dfs(int start_node, struct Node nodes[BUFSIZE], int max_chain[BUFSIZE]) {
+void dfs(int start_node, struct Node nodes[BUFSIZE], int max_chain[CHEAT]) {
   int stack[BUFSIZE];
   int node;
-  int cur_chain[BUFSIZE];
+  int cur_chain[CHEAT];
   int stackpt = 0;
   int cur_chain_last = 0;
 
-  for(int i = 0; i < BUFSIZE; i ++) {
+  for(int i = 0; i < CHEAT; i ++) {
     cur_chain[i] = -1;
   }
 
@@ -109,8 +110,8 @@ void dfs(int start_node, struct Node nodes[BUFSIZE], int max_chain[BUFSIZE]) {
   }
 }
 
-int in_cur(int look_for, int chain[BUFSIZE]) {
-  for(int i=0; i < BUFSIZE; i++) {
+int in_cur(int look_for, int chain[CHEAT]) {
+  for(int i=0; i < CHEAT; i++) {
     if(chain[i] == look_for) {
       return 1;
     }
@@ -119,14 +120,14 @@ int in_cur(int look_for, int chain[BUFSIZE]) {
 }
 
 int main() {
-  int max_chain[BUFSIZE];
+  int max_chain[CHEAT];
   struct Node nodes[BUFSIZE];
   char first_char;
   char last_char;
   int i, j;
   char comp;
 
-  for(int i = 0; i < BUFSIZE; i ++) {
+  for(int i = 0; i < CHEAT; i ++) {
     max_chain[i] = -1;
   }
 
@@ -163,7 +164,7 @@ int main() {
     }
   }
 
-  for(i=0; i < BUFSIZE; i++) {
+  for(i=0; i < CHEAT; i++) {
     if(max_chain[i] == -1) {
       break;
     }
