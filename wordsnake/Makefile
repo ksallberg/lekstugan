@@ -16,7 +16,7 @@ build/liblist.a: $(OBJS)
 
 
 all:
-	git -C list pull || git clone https://github.com/clibs/list.git
+	git clone https://github.com/clibs/list.git
 	make -C list/
 	gcc -w -o ws list/build/liblist.a wordsnake.c
 	g++ -o cppsnake wordsnake.cpp
