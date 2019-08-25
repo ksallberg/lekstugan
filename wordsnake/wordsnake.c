@@ -19,9 +19,6 @@ const char *pokemons[] = {
   "wingull","yamask"};
 
 #define BUFSIZE 70
-#define CHEAT 24
-
-extern int cur_max_len = 0;
 
 struct Node {
   int id;
@@ -29,45 +26,33 @@ struct Node {
   list_t *edges_out;
 };
 
-void remove_arr(int look_for, int chain[CHEAT]) {
-  int *rem = chain;
-  int *replace;
-  while(*rem != look_for) {
-    rem++;
-  }
-  // now standing at the thing to remove
-  replace = rem+1;
-  while(*replace != -1) {
-    *rem = *replace;
-    rem++;
-    replace++;
-  }
-  *rem = -1;
-}
+void reset_max(list_t *max_chain, list_t *new_max) {
+  /* printf("old %lu new %lu\n", max_chain->len, new_max->len); */
+  list_node_t *x;
+  if(max_chain->len < new_max->len) {
 
-void reset_max(int max_chain[CHEAT], int new_max[CHEAT], int newlen) {
-  if(newlen > cur_max_len) {
-    cur_max_len = newlen;
-    for(int i = 0; i < CHEAT; i++) {
-      if(new_max[i] == -1) {
-        max_chain[i] = -1;
-        break;
-      }
-      max_chain[i] = new_max[i];
+    while(max_chain->len > 0) {
+      list_lpop(max_chain);
     }
+    /* list_destroy(max_chain); */
+    /* max_chain = list_new(); */
+
+    x = new_max->head;
+    while(x != NULL) {
+      list_rpush(max_chain, list_node_new(x->val));
+      x = x->next;
+    }
+    /* max_chain->head = new_max->head; */
   }
 }
 
-void dfs(int start_node, struct Node nodes[BUFSIZE], int max_chain[CHEAT]) {
+void dfs(int start_node, struct Node nodes[BUFSIZE], list_t *max_chain) {
   int stack[BUFSIZE];
   int node;
-  int cur_chain[CHEAT];
+  list_t *cur_chain;
   int stackpt = 0;
-  int cur_chain_last = 0;
 
-  for(int i = 0; i < CHEAT; i ++) {
-    cur_chain[i] = -1;
-  }
+  cur_chain = list_new();
 
   // stack
   stack[stackpt] = start_node;
@@ -76,20 +61,20 @@ void dfs(int start_node, struct Node nodes[BUFSIZE], int max_chain[CHEAT]) {
   while(stackpt > 0) {
     node = stack[stackpt-1];
     if(in_cur(node, cur_chain)==1) {
-      if(cur_chain[cur_chain_last-1] == node) {
+      if(last_pos(cur_chain) == node) {
         // pop stack
         stackpt--;
         // remove node from chain
-        cur_chain[cur_chain_last] = -1;
-        cur_chain_last --;
+        list_rpop(cur_chain);
       } else {
         // pop stack
         stackpt--;
       }
     } else {
-      cur_chain[cur_chain_last] = node;
-      cur_chain_last ++;
-      int edges_len = nodes[node].edges_out->len;
+      list_node_t *new_node = list_node_new(node);
+      list_rpush(cur_chain, new_node);
+      list_t *temp = nodes[node].edges_out;
+      int edges_len = temp->len;
       list_node_t *cur = nodes[node].edges_out->head;
       if(edges_len>0) {
         while(cur != NULL) {
@@ -98,38 +83,43 @@ void dfs(int start_node, struct Node nodes[BUFSIZE], int max_chain[CHEAT]) {
           stackpt++;
         }
       } else {
-        reset_max(max_chain, cur_chain, cur_chain_last);
+        reset_max(max_chain, cur_chain);
         //pop stack
         stackpt--;
         if (in_cur(node, cur_chain)==1) {
-          remove_arr(node, cur_chain);
-          cur_chain_last --;
+          list_node_t *result = list_find(cur_chain, node);
+          list_remove(cur_chain, result);
         }
       }
     }
   }
 }
 
-int in_cur(int look_for, int chain[CHEAT]) {
-  for(int i=0; i < CHEAT; i++) {
-    if(chain[i] == look_for) {
-      return 1;
-    }
+int last_pos(list_t *chain) {
+  list_node_t *result = list_at(chain, (chain->len)-1);
+  return result->val;
+}
+
+int in_cur(int look_for, list_t *chain) {
+  list_node_t *result = list_find(chain, look_for);
+  if(result == NULL)
+    return 0;
+  if(result->val == look_for) {
+    return 1;
+  } else {
+    return 0;
   }
-  return 0;
 }
 
 int main() {
-  int max_chain[CHEAT];
+  list_t *max_chain;
   struct Node nodes[BUFSIZE];
   char first_char;
   char last_char;
   int i, j;
   char comp;
 
-  for(int i = 0; i < CHEAT; i ++) {
-    max_chain[i] = -1;
-  }
+  max_chain = list_new();
 
   // build graph
   for(i = 0; i < BUFSIZE; i++) {
@@ -170,11 +160,12 @@ int main() {
     list_destroy(nodes[i].edges_out);
   }
 
-  for(i=0; i < CHEAT; i++) {
-    if(max_chain[i] == -1) {
-      break;
-    }
-    printf("%s\n", pokemons[max_chain[i]]);
+  list_node_t *it = max_chain->head;
+  if(it == NULL) printf("shit...\n");
+  while(it != NULL) {
+
+    printf("%s\n", pokemons[(int) it->val]);
+        it = it->next;
   }
 
   exit(0);
