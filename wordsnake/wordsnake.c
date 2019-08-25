@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include "list.h"
+
 const char *pokemons[] = {
   "audino","bagon","baltoy","banette","bidoof","braviary","bronzor",
   "carracosta","charmeleon","cresselia","croagunk","darmanitan",
@@ -22,11 +24,8 @@ extern int cur_max_len = 0;
 
 struct Node {
   int id;
-  char word[20];
-  int edges_in[20];
-  int edges_in_cnt;
-  int edges_out[20];
-  int edges_out_cnt;
+  List *edges_in;
+  List *edges_out;
 };
 
 void remove_arr(int look_for, int chain[BUFSIZE]) {
@@ -89,10 +88,12 @@ void dfs(int start_node, struct Node nodes[BUFSIZE], int max_chain[BUFSIZE]) {
     } else {
       cur_chain[cur_chain_last] = node;
       cur_chain_last ++;
-      int edges_len = nodes[node].edges_out_cnt;
+      int edges_len = l_size(nodes[node].edges_out);
+      struct l_element *cur = nodes[node].edges_out->head;
       if(edges_len>0) {
-        for(int i = 0; i < edges_len; i++) {
-          stack[stackpt] = nodes[node].edges_out[i];
+        while(cur != NULL) {
+          stack[stackpt] = cur->value;
+          cur=cur->next;
           stackpt++;
         }
       } else {
@@ -122,7 +123,7 @@ int main() {
   struct Node nodes[BUFSIZE];
   char first_char;
   char last_char;
-  int i, j, edges_in_counter, edges_out_counter=0;
+  int i, j;
   char comp;
 
   for(int i = 0; i < BUFSIZE; i ++) {
@@ -131,12 +132,11 @@ int main() {
 
   // build graph
   for(i = 0; i < BUFSIZE; i++) {
-    edges_in_counter=0;
-    edges_out_counter=0;
-    strcpy(nodes[i].word, pokemons[i]);
+    /* edges_out_counter=0; */
     nodes[i].id = i;
-    nodes[i].edges_in_cnt = 0;
-    nodes[i].edges_out_cnt = 0;
+    nodes[i].edges_in = l_create();
+    nodes[i].edges_out = l_create();
+
     first_char = pokemons[i][0];
     last_char = pokemons[i][strlen(pokemons[i])-1];
 
@@ -145,16 +145,12 @@ int main() {
 
       // add nodes pointing at me
       if(first_char == comp && i != j) {
-        nodes[i].edges_in[edges_in_counter] = j;
-        nodes[i].edges_in_cnt ++;
-        edges_in_counter++;
+        l_add(nodes[i].edges_in, j);
       }
 
       // add nodes im pointing at
       if(last_char == pokemons[j][0] && i != j) {
-        nodes[i].edges_out[edges_out_counter] = j;
-        nodes[i].edges_out_cnt ++;
-        edges_out_counter++;
+        l_add(nodes[i].edges_out, j);
       }
     }
     nodes[i].id = i;
@@ -162,7 +158,7 @@ int main() {
 
   // populate start_nodes
   for(i = 0; i < BUFSIZE; i++) {
-    if(nodes[i].edges_in_cnt == 0) {
+    if(l_size(nodes[i].edges_in) == 0) {
       dfs(i, nodes, max_chain);
     }
   }
