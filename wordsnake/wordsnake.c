@@ -20,8 +20,6 @@ const char *pokemons[] = {
 
 #define BUFSIZE 70
 
-extern int cur_max_len = 0;
-
 struct Node {
   int id;
   List *edges_in;
@@ -44,9 +42,9 @@ void remove_arr(int look_for, int *chain) {
   *rem = -1;
 }
 
-void reset_max(int *max_chain, int *new_max, int newlen) {
-  if(newlen > cur_max_len) {
-    cur_max_len = newlen;
+void reset_max(int *max_chain, int *new_max, int newlen, int *cur_max_len) {
+  if(newlen > *cur_max_len) {
+    *cur_max_len = newlen;
     for(int i = 0; i < newlen; i++) {
       if(new_max[i] == -1) {
         max_chain[i] = -1;
@@ -58,7 +56,8 @@ void reset_max(int *max_chain, int *new_max, int newlen) {
 }
 
 void dfs(int start_node, struct Node *nodes,
-         int *max_chain, int *cur_chain, int *stack) {
+         int *max_chain, int *cur_chain, int *stack,
+         int *cur_max_len) {
   int node;
   int stackpt = 0;
   int cur_chain_last = 0;
@@ -71,7 +70,7 @@ void dfs(int start_node, struct Node *nodes,
 
   while(stackpt > 0) {
     node = stack[stackpt-1];
-    if(in_cur(node, cur_chain, cur_chain_last)==1) {
+    if(in_cur(node, cur_chain, cur_chain_last, cur_max_len)==1) {
       if(cur_chain[cur_chain_last-1] == node) {
         // pop stack
         stackpt--;
@@ -94,10 +93,10 @@ void dfs(int start_node, struct Node *nodes,
           stackpt++;
         }
       } else {
-        reset_max(max_chain, cur_chain, cur_chain_last);
+        reset_max(max_chain, cur_chain, cur_chain_last, cur_max_len);
         //pop stack
         stackpt--;
-        if(in_cur(node, cur_chain, cur_chain_last)==1) {
+        if(in_cur(node, cur_chain, cur_chain_last, cur_max_len)==1) {
           remove_arr(node, cur_chain);
           cur_chain_last --;
         }
@@ -106,12 +105,13 @@ void dfs(int start_node, struct Node *nodes,
   }
 }
 
-int in_cur(int look_for, int *chain, int tmp_chain_len) {
+int in_cur(int look_for, int *chain,
+           int tmp_chain_len, int *cur_max_len) {
   int loop_to = -1;
-  if(tmp_chain_len > cur_max_len) {
+  if(tmp_chain_len > *cur_max_len) {
     loop_to = tmp_chain_len;
   } else {
-    loop_to = cur_max_len;
+    loop_to = *cur_max_len;
   }
   for(int i=0; i < loop_to; i++) {
     if(chain[i] == look_for) {
@@ -130,6 +130,7 @@ int main() {
   char last_char;
   int i, j;
   char comp;
+  int cur_max_len = 0;
 
   // build graph
   for(i = 0; i < BUFSIZE; i++) {
@@ -160,8 +161,23 @@ int main() {
   // populate start_nodes
   for(i = 0; i < BUFSIZE; i++) {
     if(l_size(nodes[i].edges_in) == 0) {
-      dfs(i, nodes, max_chain, tmp_chain, stack);
+      dfs(i, nodes, max_chain, tmp_chain, stack, &cur_max_len);
     }
+  }
+
+  for(i = 0; i < BUFSIZE; i ++) {
+    while(l_size(nodes[i].edges_in) > 0) {
+      printf("remove node %d edge in\n", i),
+      l_remove(nodes[i].edges_in);
+    }
+
+    while(l_size(nodes[i].edges_out) > 0) {
+      printf("remove node %d edge out\n", i),
+      l_remove(nodes[i].edges_out);
+    }
+
+    free(nodes[i].edges_in);
+    free(nodes[i].edges_out);
   }
 
   for(i=0; i < cur_max_len; i++) {
