@@ -6,3 +6,6 @@ all:
 
 run:
 	./ws
+
+run-java:
+	java wordsnake
