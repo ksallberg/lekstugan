@@ -19,7 +19,6 @@ const char *pokemons[] = {
   "wingull","yamask"};
 
 #define BUFSIZE 70
-#define CHEAT 24
 
 extern int cur_max_len = 0;
 
@@ -48,7 +47,7 @@ void remove_arr(int look_for, int *chain) {
 void reset_max(int *max_chain, int *new_max, int newlen) {
   if(newlen > cur_max_len) {
     cur_max_len = newlen;
-    for(int i = 0; i < CHEAT; i++) {
+    for(int i = 0; i < newlen; i++) {
       if(new_max[i] == -1) {
         max_chain[i] = -1;
         break;
@@ -58,16 +57,13 @@ void reset_max(int *max_chain, int *new_max, int newlen) {
   }
 }
 
-void dfs(int start_node, struct Node nodes[BUFSIZE], int *max_chain) {
-  int stack[BUFSIZE];
+void dfs(int start_node, struct Node *nodes,
+         int *max_chain, int *cur_chain, int *stack) {
   int node;
-  int cur_chain[CHEAT];
   int stackpt = 0;
   int cur_chain_last = 0;
-
-  for(int i = 0; i < CHEAT; i ++) {
-    cur_chain[i] = -1;
-  }
+  int sz = sizeof(-1) * BUFSIZE;
+  memset(cur_chain, -1, sz);
 
   // stack
   stack[stackpt] = start_node;
@@ -75,7 +71,7 @@ void dfs(int start_node, struct Node nodes[BUFSIZE], int *max_chain) {
 
   while(stackpt > 0) {
     node = stack[stackpt-1];
-    if(in_cur(node, cur_chain)==1) {
+    if(in_cur(node, cur_chain, cur_chain_last)==1) {
       if(cur_chain[cur_chain_last-1] == node) {
         // pop stack
         stackpt--;
@@ -101,7 +97,7 @@ void dfs(int start_node, struct Node nodes[BUFSIZE], int *max_chain) {
         reset_max(max_chain, cur_chain, cur_chain_last);
         //pop stack
         stackpt--;
-        if (in_cur(node, cur_chain)==1) {
+        if(in_cur(node, cur_chain, cur_chain_last)==1) {
           remove_arr(node, cur_chain);
           cur_chain_last --;
         }
@@ -110,8 +106,14 @@ void dfs(int start_node, struct Node nodes[BUFSIZE], int *max_chain) {
   }
 }
 
-int in_cur(int look_for, int *chain) {
-  for(int i=0; i < CHEAT; i++) {
+int in_cur(int look_for, int *chain, int tmp_chain_len) {
+  int loop_to = -1;
+  if(tmp_chain_len > cur_max_len) {
+    loop_to = tmp_chain_len;
+  } else {
+    loop_to = cur_max_len;
+  }
+  for(int i=0; i < loop_to; i++) {
     if(chain[i] == look_for) {
       return 1;
     }
@@ -120,16 +122,14 @@ int in_cur(int look_for, int *chain) {
 }
 
 int main() {
-  int max_chain[CHEAT];
+  int stack[BUFSIZE];
+  int tmp_chain[BUFSIZE];
+  int max_chain[BUFSIZE];
   struct Node nodes[BUFSIZE];
   char first_char;
   char last_char;
   int i, j;
   char comp;
-
-  for(int i = 0; i < CHEAT; i ++) {
-    max_chain[i] = -1;
-  }
 
   // build graph
   for(i = 0; i < BUFSIZE; i++) {
@@ -160,11 +160,11 @@ int main() {
   // populate start_nodes
   for(i = 0; i < BUFSIZE; i++) {
     if(l_size(nodes[i].edges_in) == 0) {
-      dfs(i, nodes, max_chain);
+      dfs(i, nodes, max_chain, tmp_chain, stack);
     }
   }
 
-  for(i=0; i < CHEAT; i++) {
+  for(i=0; i < cur_max_len; i++) {
     if(max_chain[i] == -1) {
       break;
     }
